@@ -1,59 +1,174 @@
 "use client";
-import { Bot, MoreHorizontal, Plus, Send, Settings, User } from "lucide-react";
-import { useState } from "react";
+import { Bot, MoreHorizontal, Plus, Send, Settings, User, ChevronDown, Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+
+const MODELS = [
+  {
+    id: "qwen3-coder-plus",
+    name: "Qwen3 Coder Plus",
+    icon: "🔷",
+    isPro: true,
+    provider: "Alibaba Cloud",
+    description: "Powered by Qwen3 this is a powerful Coding Agent that excels in tool calling and environment interaction to achieve autonomous programming. It combines outstanding coding proficiency with versatile general-purpose abilities.",
+    context: "1000,000 tokens",
+    inputPricing: "$1.00 / million tokens",
+    outputPricing: "$5.00 / million tokens",
+    uptime: "100.00%"
+  },
+  {
+    id: "qwen3-max",
+    name: "Qwen3 Max",
+    icon: "🔷",
+    isPro: true,
+    provider: "Alibaba Cloud",
+    description: "The most powerful model in the Qwen3 family, offering exceptional performance across all tasks.",
+    context: "1000,000 tokens",
+    inputPricing: "$2.00 / million tokens",
+    outputPricing: "$6.00 / million tokens",
+    uptime: "99.98%"
+  },
+  {
+    id: "qwen3-max-preview",
+    name: "Qwen3 Max Preview",
+    icon: "🔷",
+    isPro: true,
+    provider: "Alibaba Cloud",
+    description: "Preview version of Qwen3 Max with experimental features and improvements.",
+    context: "1000,000 tokens",
+    inputPricing: "$1.50 / million tokens",
+    outputPricing: "$5.50 / million tokens",
+    uptime: "99.50%"
+  },
+  {
+    id: "claude-3.5-haiku",
+    name: "Claude 3.5 Haiku",
+    icon: "AI",
+    isPro: true,
+    provider: "Anthropic",
+    description: "Fast and efficient model for quick responses and high-volume tasks.",
+    context: "200,000 tokens",
+    inputPricing: "$0.25 / million tokens",
+    outputPricing: "$1.25 / million tokens",
+    uptime: "99.99%"
+  },
+  {
+    id: "claude-3.7-sonnet",
+    name: "Claude 3.7 Sonnet",
+    icon: "AI",
+    isPro: true,
+    provider: "Anthropic",
+    description: "Balanced model offering excellent performance across a wide range of tasks.",
+    context: "200,000 tokens",
+    inputPricing: "$3.00 / million tokens",
+    outputPricing: "$15.00 / million tokens",
+    uptime: "99.99%"
+  },
+  {
+    id: "claude-3-haiku",
+    name: "Claude 3 Haiku",
+    icon: "AI",
+    isPro: true,
+    provider: "Anthropic",
+    description: "Compact model optimized for speed and cost-effectiveness.",
+    context: "200,000 tokens",
+    inputPricing: "$0.25 / million tokens",
+    outputPricing: "$1.25 / million tokens",
+    uptime: "99.95%"
+  },
+  {
+    id: "claude-3-opus",
+    name: "Claude 3 Opus",
+    icon: "AI",
+    isPro: true,
+    provider: "Anthropic",
+    description: "Most capable Claude 3 model for complex tasks requiring deep reasoning.",
+    context: "200,000 tokens",
+    inputPricing: "$15.00 / million tokens",
+    outputPricing: "$75.00 / million tokens",
+    uptime: "99.99%"
+  },
+];
 
 export default function DemoPage() {
   const [inputValue, setInputValue] = useState("");
+  const [leftModelDropdownOpen, setLeftModelDropdownOpen] = useState(false);
+  const [rightModelDropdownOpen, setRightModelDropdownOpen] = useState(false);
+  const [leftSelectedModel, setLeftSelectedModel] = useState(MODELS[0]);
+  const [rightSelectedModel, setRightSelectedModel] = useState(MODELS[4]);
+  const [modelSearchLeft, setModelSearchLeft] = useState("");
+  const [modelSearchRight, setModelSearchRight] = useState("");
+  const [hoveredModelLeft, setHoveredModelLeft] = useState<typeof MODELS[0] | null>(null);
+  const [hoveredModelRight, setHoveredModelRight] = useState<typeof MODELS[0] | null>(null);
+
+  const leftDropdownRef = useRef<HTMLDivElement>(null);
+  const rightDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (leftDropdownRef.current && !leftDropdownRef.current.contains(event.target as Node)) {
+        setLeftModelDropdownOpen(false);
+      }
+      if (rightDropdownRef.current && !rightDropdownRef.current.contains(event.target as Node)) {
+        setRightModelDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-full bg-[#0a0a0a] flex">
       {/* Left Sidebar */}
-      <div className="w-72 border-r border-white/10 flex flex-col">
+      <div className="w-72 border-r border-zinc-800 flex flex-col bg-black">
         {/* Sidebar Header */}
-        <div className="h-16 border-b border-white/10 flex items-center justify-between px-5">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg"></div>
-            <span className="text-white font-semibold text-sm">AI SDK</span>
+        <div className="h-12 border-b border-zinc-800 flex items-center justify-between px-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-zinc-700"></div>
+            <span className="text-white font-mono font-bold text-sm tracking-tight">AI SDK</span>
           </div>
         </div>
 
         {/* New Chat Button */}
-        <div className="p-4">
-          <button className="w-full px-4 py-[14px] bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center gap-2.5 text-white/90 text-sm font-medium transition-colors">
+        <div className="border-b border-zinc-800">
+          <button className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors">
             <Plus className="w-4 h-4" />
-            New Chat
+            NEW CHAT
           </button>
         </div>
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto px-3">
-          <div className="space-y-2">
+        <div className="flex-1 overflow-y-auto">
+          <div>
             {/* Active Chat */}
-            <div className="px-4 py-[14px] bg-white/10 rounded-lg cursor-pointer">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded bg-pink-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Bot className="w-3.5 h-3.5 text-pink-400" />
+            <div className="px-3 py-2 bg-zinc-900 border-b border-zinc-800 cursor-pointer">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3 h-3 text-zinc-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white/90 text-sm truncate leading-relaxed">
+                  <p className="text-white text-sm truncate leading-snug font-mono">
                     explain in-depth the technical implementation...
                   </p>
-                  <p className="text-white/40 text-xs mt-2">01:36 PM</p>
+                  <p className="text-zinc-600 text-xs font-mono">01:36 PM</p>
                 </div>
               </div>
             </div>
 
             {/* Other Chat */}
-            <div className="px-4 py-[14px] hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded bg-white/5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Bot className="w-3.5 h-3.5 text-white/40" />
+            <div className="px-3 py-2 hover:bg-zinc-950 border-b border-zinc-800 cursor-pointer transition-colors">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 bg-zinc-900 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3 h-3 text-zinc-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white/60 text-sm truncate leading-relaxed">
+                  <p className="text-zinc-400 text-sm truncate leading-snug font-mono">
                     GPT-6 thought for 33 seconds
                   </p>
-                  <p className="text-white/30 text-xs mt-2">Yesterday</p>
+                  <p className="text-zinc-700 text-xs font-mono">Yesterday</p>
                 </div>
               </div>
             </div>
@@ -62,61 +177,193 @@ export default function DemoPage() {
       </div>
 
       {/* Main Content Area - Split View */}
-      <div className="flex-1 flex">
-        {/* Left Panel */}
-        <div className="flex-1 flex flex-col border-r border-white/10">
-          {/* Header */}
-          <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded bg-pink-500/20 flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5 text-pink-400" />
+      <div className="flex-1 flex flex-col bg-black">
+        {/* Chat Title Header - Above both panels */}
+        <div className="px-3 py-3 border-b border-zinc-800">
+          <h1 className="text-white text-base font-mono font-bold tracking-tight">TECHNICAL IMPLEMENTATION OF PPO FOR FINE-TUNING</h1>
+          <p className="text-zinc-600 text-xs font-mono">2 VERSIONS • STARTED 2 HOURS AGO</p>
+        </div>
+
+        {/* Split View Panels */}
+        <div className="flex-1 flex bg-black">
+          {/* Left Panel */}
+          <div className="flex-1 flex flex-col bg-black border-r border-zinc-800 overflow-hidden">
+            {/* Model Header */}
+            <div className="h-11 border-b border-zinc-800 flex items-center justify-between px-3 bg-zinc-950">
+              <div className="relative" ref={leftDropdownRef}>
+                <button
+                  onClick={() => setLeftModelDropdownOpen(!leftModelDropdownOpen)}
+                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
+                >
+                  <span className="text-base">{leftSelectedModel.icon}</span>
+                  <span className="text-white text-sm font-mono">{leftSelectedModel.name}</span>
+                  {leftSelectedModel.isPro && (
+                    <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs font-mono border border-zinc-700">
+                      PRO
+                    </span>
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+                </button>
+
+                {/* Dropdown */}
+                {leftModelDropdownOpen && (
+                  <div className="absolute top-full left-0 flex z-50">
+                    {/* Dropdown Menu */}
+                    <div className="w-64 bg-black border border-zinc-800 shadow-2xl">
+                      {/* Search */}
+                      <div className="border-b border-zinc-800">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+                          <input
+                            type="text"
+                            placeholder="SEARCH MODELS..."
+                            value={modelSearchLeft}
+                            onChange={(e) => setModelSearchLeft(e.target.value)}
+                            className="w-full pl-8 pr-2.5 py-2 bg-zinc-950 border-0 text-sm text-white placeholder:text-zinc-700 focus:outline-none font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Model List */}
+                      <div className="max-h-80 overflow-y-auto">
+                        {MODELS.filter(m => m.name.toLowerCase().includes(modelSearchLeft.toLowerCase())).map((model) => (
+                          <button
+                            key={model.id}
+                            onClick={() => {
+                              setLeftSelectedModel(model);
+                              setLeftModelDropdownOpen(false);
+                              setModelSearchLeft("");
+                              setHoveredModelLeft(null);
+                            }}
+                            onMouseEnter={() => setHoveredModelLeft(model)}
+                            onMouseLeave={() => setHoveredModelLeft(null)}
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-950 border-b border-zinc-800 transition-colors text-left"
+                          >
+                            <span className="text-base">{model.icon}</span>
+                            <span className="text-white text-sm flex-1 font-mono">{model.name}</span>
+                            {model.isPro && (
+                              <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs font-mono border border-zinc-700">
+                                PRO
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Info Card */}
+                    {hoveredModelLeft && (
+                      <div className="w-72 bg-black border-l border-zinc-800 shadow-2xl">
+                        <div className="p-3 space-y-3">
+                          {/* Header */}
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className="text-base">{hoveredModelLeft.icon}</span>
+                              <span className="text-white text-xs font-mono font-bold">
+                                {hoveredModelLeft.provider.toUpperCase()}
+                              </span>
+                              <span className="text-zinc-600 text-xs">/</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelLeft.name}
+                              </span>
+                            </div>
+                            <p className="text-zinc-400 text-xs leading-snug">
+                              {hoveredModelLeft.description}
+                            </p>
+                          </div>
+
+                          {/* Stats */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">CONTEXT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelLeft.context}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">INPUT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelLeft.inputPricing}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">OUTPUT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelLeft.outputPricing}
+                              </span>
+                            </div>
+                            <div className="pt-2 border-t border-zinc-800">
+                              <div className="flex justify-between items-center mb-1.5">
+                                <span className="text-zinc-600 text-xs font-mono">UPTIME</span>
+                                <span className="text-white text-xs font-mono">
+                                  {hoveredModelLeft.uptime}
+                                </span>
+                              </div>
+                              {/* Uptime Graph Placeholder */}
+                              <div className="h-6 bg-zinc-950 border border-zinc-900 flex items-center justify-center">
+                                <div className="flex gap-0.5 h-3">
+                                  {Array.from({ length: 50 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="w-0.5 bg-zinc-700"
+                                      style={{ height: `${Math.random() * 100}%` }}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex justify-between mt-1">
+                                <span className="text-zinc-700 text-[10px] font-mono">12 HRS AGO</span>
+                                <span className="text-zinc-700 text-[10px] font-mono">NOW</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <span className="text-white/90 text-sm font-medium">GPT-5</span>
-              <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">
-                PRO
-              </span>
+              <div className="flex items-center gap-1">
+                <button className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors">
+                  <Settings className="w-4 h-4 text-zinc-500" />
+                </button>
+                <button className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors">
+                  <MoreHorizontal className="w-4 h-4 text-zinc-500" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button className="p-2 hover:bg-white/5 rounded-md transition-colors">
-                <Settings className="w-4 h-4 text-white/60" />
-              </button>
-              <button className="p-2 hover:bg-white/5 rounded-md transition-colors">
-                <MoreHorizontal className="w-4 h-4 text-white/60" />
-              </button>
-            </div>
-          </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-8 py-8 space-y-10">
+          <div className="flex-1 overflow-y-auto bg-black">
+            <div>
               {/* User Message */}
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 text-white/60" />
+              <div className="flex gap-3 px-3 py-3">
+                <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <User className="w-3.5 h-3.5 text-zinc-500" />
                 </div>
-                <div className="flex-1 pt-0.5">
-                  <div className="text-white/90 text-[15px] leading-7">
+                <div className="flex-1">
+                  <div className="text-white text-sm leading-6">
                     explain in-depth the technical implementation of PPO for
                     fine-tuning with reinforcement learning
                   </div>
-                  <div className="text-white/40 text-xs mt-3">01:36 PM</div>
+                  <div className="text-zinc-600 text-xs font-mono">01:36 PM</div>
                 </div>
               </div>
 
               {/* Assistant Message */}
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-white/60" />
+              <div className="flex gap-3 px-3 py-3">
+                <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-zinc-500" />
                 </div>
                 <div className="flex-1 pt-0.5">
-                  <div className="text-white/40 text-xs mb-4 flex items-center gap-2">
-                    <span className="text-white/60">
-                      GPT-5 thought for 33 seconds
+                  <div className="text-zinc-600 text-xs mb-3 flex items-center gap-2 font-mono">
+                    <span className="text-zinc-500">
+                      GPT-5 THOUGHT FOR 33 SECONDS
                     </span>
-                    <span className="text-white/30">→</span>
+                    <span className="text-zinc-700">→</span>
                   </div>
                   <div className="prose prose-invert max-w-none">
-                    <div className="text-white/90 text-[15px] leading-7 space-y-6">
+                    <div className="text-zinc-300 text-sm leading-6 space-y-4">
                       <p>
                         Below is a practical, implementation-oriented
                         walkthrough of PPO (Proximal Policy Optimization) as
@@ -126,9 +373,9 @@ export default function DemoPage() {
                         RLHF specifics for language models.
                       </p>
 
-                      <div className="space-y-5">
+                      <div className="space-y-4">
                         <div>
-                          <h3 className="text-white/95 font-semibold text-[15px] mb-3">
+                          <h3 className="text-white/95 font-semibold text-sm mb-2">
                             1. High-level Idea
                           </h3>
                           <p className="text-white/80 mb-3">
@@ -146,10 +393,10 @@ export default function DemoPage() {
                         </div>
 
                         <div>
-                          <h3 className="text-white/95 font-semibold text-[15px] mb-3">
+                          <h3 className="text-white/95 font-semibold text-sm mb-2">
                             2. Core model components
                           </h3>
-                          <ul className="space-y-3 text-white/80">
+                          <ul className="space-y-2 text-white/80">
                             <li className="pl-1">
                               <strong className="text-white/90">
                                 Policy network π(a|s):
@@ -239,60 +486,180 @@ export default function DemoPage() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-white/10 p-6">
-            <div className="max-w-3xl mx-auto">
-              <div className="relative">
-                <textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type your message..."
-                  rows={1}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-5 py-3.5 pr-14 text-white/90 placeholder:text-white/40 text-[15px] resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button className="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                  <Send className="w-4 h-4 text-white" />
-                </button>
-              </div>
+          <div className="border-t border-zinc-800 bg-black">
+            <div className="relative">
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="TYPE YOUR MESSAGE..."
+                rows={1}
+                className="w-full bg-zinc-950 border-0 px-3 py-3 pr-12 text-white placeholder:text-zinc-700 text-sm resize-none focus:outline-none font-mono"
+              />
+              <button className="absolute right-3 top-3 p-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors">
+                <Send className="w-3.5 h-3.5 text-zinc-300" />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="h-16 border-b border-white/10 flex items-center justify-between px-6">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded bg-white/5 flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5 text-white/60" />
+          {/* Right Panel */}
+          <div className="flex-1 flex flex-col bg-black overflow-hidden">
+            {/* Model Header */}
+            <div className="h-11 border-b border-zinc-800 flex items-center justify-between px-3 bg-zinc-950">
+              <div className="relative" ref={rightDropdownRef}>
+                <button
+                  onClick={() => setRightModelDropdownOpen(!rightModelDropdownOpen)}
+                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
+                >
+                  <span className="text-base">{rightSelectedModel.icon}</span>
+                  <span className="text-white text-sm font-mono">{rightSelectedModel.name}</span>
+                  {rightSelectedModel.isPro && (
+                    <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs font-mono border border-zinc-700">
+                      PRO
+                    </span>
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+                </button>
+
+                {/* Dropdown */}
+                {rightModelDropdownOpen && (
+                  <div className="absolute top-full left-0 flex z-50">
+                    {/* Dropdown Menu */}
+                    <div className="w-64 bg-black border border-zinc-800 shadow-2xl">
+                      {/* Search */}
+                      <div className="border-b border-zinc-800">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
+                          <input
+                            type="text"
+                            placeholder="SEARCH MODELS..."
+                            value={modelSearchRight}
+                            onChange={(e) => setModelSearchRight(e.target.value)}
+                            className="w-full pl-8 pr-2.5 py-2 bg-zinc-950 border-0 text-sm text-white placeholder:text-zinc-700 focus:outline-none font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Model List */}
+                      <div className="max-h-80 overflow-y-auto">
+                        {MODELS.filter(m => m.name.toLowerCase().includes(modelSearchRight.toLowerCase())).map((model) => (
+                          <button
+                            key={model.id}
+                            onClick={() => {
+                              setRightSelectedModel(model);
+                              setRightModelDropdownOpen(false);
+                              setModelSearchRight("");
+                              setHoveredModelRight(null);
+                            }}
+                            onMouseEnter={() => setHoveredModelRight(model)}
+                            onMouseLeave={() => setHoveredModelRight(null)}
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-zinc-950 border-b border-zinc-800 transition-colors text-left"
+                          >
+                            <span className="text-base">{model.icon}</span>
+                            <span className="text-white text-sm flex-1 font-mono">{model.name}</span>
+                            {model.isPro && (
+                              <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400 text-xs font-mono border border-zinc-700">
+                                PRO
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Info Card */}
+                    {hoveredModelRight && (
+                      <div className="w-72 bg-black border-l border-zinc-800 shadow-2xl p-3">
+                        <div className="space-y-3">
+                          {/* Header */}
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <span className="text-base">{hoveredModelRight.icon}</span>
+                              <span className="text-white text-xs font-mono font-bold">
+                                {hoveredModelRight.provider.toUpperCase()}
+                              </span>
+                              <span className="text-zinc-600 text-xs">/</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelRight.name}
+                              </span>
+                            </div>
+                            <p className="text-zinc-400 text-xs leading-snug">
+                              {hoveredModelRight.description}
+                            </p>
+                          </div>
+
+                          {/* Stats */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">CONTEXT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelRight.context}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">INPUT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelRight.inputPricing}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-zinc-900 pb-1">
+                              <span className="text-zinc-600 text-xs font-mono">OUTPUT</span>
+                              <span className="text-white text-xs font-mono">
+                                {hoveredModelRight.outputPricing}
+                              </span>
+                            </div>
+                            <div className="pt-2 border-t border-zinc-800">
+                              <div className="flex justify-between items-center mb-1.5">
+                                <span className="text-zinc-600 text-xs font-mono">UPTIME</span>
+                                <span className="text-white text-xs font-mono">
+                                  {hoveredModelRight.uptime}
+                                </span>
+                              </div>
+                              {/* Uptime Graph Placeholder */}
+                              <div className="h-6 bg-zinc-950 border border-zinc-900 flex items-center justify-center">
+                                <div className="flex gap-0.5 h-3">
+                                  {Array.from({ length: 50 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="w-0.5 bg-zinc-700"
+                                      style={{ height: `${Math.random() * 100}%` }}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex justify-between mt-1">
+                                <span className="text-zinc-700 text-[10px] font-mono">12 HRS AGO</span>
+                                <span className="text-zinc-700 text-[10px] font-mono">NOW</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <span className="text-white/90 text-sm font-medium">
-                GPT-5 o1+1
-              </span>
-              <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 text-xs font-medium rounded-full">
-                PRO
-              </span>
+              <div className="flex items-center gap-1">
+                <button className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors">
+                  <Settings className="w-4 h-4 text-zinc-500" />
+                </button>
+                <button className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors">
+                  <MoreHorizontal className="w-4 h-4 text-zinc-500" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button className="p-2 hover:bg-white/5 rounded-md transition-colors">
-                <Settings className="w-4 h-4 text-white/60" />
-              </button>
-              <button className="p-2 hover:bg-white/5 rounded-md transition-colors">
-                <MoreHorizontal className="w-4 h-4 text-white/60" />
-              </button>
-            </div>
-          </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-8 py-8 space-y-10">
+          <div className="flex-1 overflow-y-auto bg-black">
+            <div>
               {/* Assistant Message with List */}
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4 text-white/60" />
+              <div className="flex gap-3 px-3 py-3">
+                <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-3.5 h-3.5 text-zinc-500" />
                 </div>
-                <div className="flex-1 pt-0.5">
+                <div className="flex-1">
                   <div className="prose prose-invert max-w-none">
-                    <div className="text-white/90 text-[15px] leading-7 space-y-6">
+                    <div className="text-zinc-300 text-sm leading-6 space-y-4">
                       <ul className="space-y-3 text-white/80 list-none pl-0">
                         <li className="flex gap-3 pl-1">
                           <span className="text-white/60 mt-0.5">•</span>
@@ -435,20 +802,19 @@ export default function DemoPage() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-white/10 p-6">
-            <div className="max-w-3xl mx-auto">
-              <div className="relative">
-                <textarea
-                  placeholder="Type your message..."
-                  rows={1}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-5 py-3.5 pr-14 text-white/90 placeholder:text-white/40 text-[15px] resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button className="absolute right-3 bottom-3 p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
-                  <Send className="w-4 h-4 text-white" />
-                </button>
-              </div>
+          <div className="border-t border-zinc-800 bg-black">
+            <div className="relative">
+              <textarea
+                placeholder="TYPE YOUR MESSAGE..."
+                rows={1}
+                className="w-full bg-zinc-950 border-0 px-3 py-3 pr-12 text-white placeholder:text-zinc-700 text-sm resize-none focus:outline-none font-mono"
+              />
+              <button className="absolute right-3 top-3 p-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors">
+                <Send className="w-3.5 h-3.5 text-zinc-300" />
+              </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
