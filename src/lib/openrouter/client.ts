@@ -1,45 +1,34 @@
 /**
  * OpenRouter API client with streaming support
+ * Now uses server-side API route to keep API key secure
  */
 
-import type { OpenRouterMessage, OpenRouterRequest, OpenRouterStreamChunk } from '../types';
-
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+import type { OpenRouterMessage, OpenRouterStreamChunk } from '../types';
 
 export class OpenRouterClient {
-  private apiKey: string;
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
-
   /**
-   * Send a chat completion request with streaming
+   * Send a chat completion request with streaming via our API route
    */
   async *streamChat(
     model: string,
     messages: OpenRouterMessage[],
     signal?: AbortSignal
   ): AsyncGenerator<string, void, unknown> {
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '',
-        'X-Title': 'Explorative Chat',
       },
       body: JSON.stringify({
         model,
         messages,
-        stream: true,
-      } satisfies OpenRouterRequest),
+      }),
       signal,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} ${error}`);
+      throw new Error(`Chat API error: ${response.status} ${error}`);
     }
 
     if (!response.body) {
@@ -80,61 +69,6 @@ export class OpenRouterClient {
       reader.releaseLock();
     }
   }
-
-  /**
-   * Send a chat completion request without streaming (for simpler use cases)
-   */
-  async chat(model: string, messages: OpenRouterMessage[]): Promise<string> {
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '',
-        'X-Title': 'Explorative Chat',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: false,
-      } satisfies OpenRouterRequest),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`OpenRouter API error: ${response.status} ${error}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || '';
-  }
-}
-
-// Storage key for API key
-export const OPENROUTER_API_KEY_STORAGE = 'openrouter_api_key';
-
-/**
- * Get API key from localStorage
- */
-export function getStoredApiKey(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(OPENROUTER_API_KEY_STORAGE);
-}
-
-/**
- * Store API key in localStorage
- */
-export function storeApiKey(apiKey: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(OPENROUTER_API_KEY_STORAGE, apiKey);
-}
-
-/**
- * Clear API key from localStorage
- */
-export function clearStoredApiKey(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(OPENROUTER_API_KEY_STORAGE);
 }
 
 /**

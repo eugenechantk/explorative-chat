@@ -24,6 +24,8 @@ export interface Conversation {
   createdAt: number;
   updatedAt: number;
   position: number; // Order in the group layout (0-indexed)
+  initialInput?: string; // Prepopulated input text (e.g., from branching) - deprecated, use mentionedTexts
+  mentionedTexts?: string[]; // Array of referenced texts from branching
 }
 
 export interface ConversationGroup {

@@ -42,14 +42,24 @@ cd explorative-chat
 npm install
 ```
 
-3. Run the development server:
+3. Create a `.env.local` file in the root directory:
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` and add your OpenRouter API key:
+```bash
+OPENROUTER_API_KEY=your_actual_api_key_here
+```
+
+Get your API key from [https://openrouter.ai/keys](https://openrouter.ai/keys)
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-5. Enter your OpenRouter API key when prompted
+5. Open [http://localhost:3000](http://localhost:3000) in your browser and start chatting!
 
 ## Usage
 
@@ -88,6 +98,18 @@ Press `?` to view all available shortcuts:
 - `Esc` - Close dialog/modal
 - `?` - Show keyboard shortcuts
 
+## Configuration
+
+### Environment Variables
+
+The application uses a `.env.local` file for configuration. Create this file in the root directory:
+
+```env
+OPENROUTER_API_KEY=your_api_key_here
+```
+
+**Note**: The API key is stored server-side and never exposed to the client browser for security.
+
 ## Technical Architecture
 
 ### Tech Stack
@@ -96,7 +118,7 @@ Press `?` to view all available shortcuts:
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Storage**: IndexedDB (via Dexie.js)
-- **LLM Provider**: OpenRouter
+- **LLM Provider**: OpenRouter (via server-side API route)
 - **UI Components**: React 19, lucide-react icons
 - **Layout**: react-resizable-panels
 

@@ -5,7 +5,7 @@ import type { Conversation, Message, BranchContext } from '@/lib/types';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { BranchButton } from './BranchButton';
-import { OpenRouterClient, getStoredApiKey, POPULAR_MODELS } from '@/lib/openrouter/client';
+import { OpenRouterClient, POPULAR_MODELS } from '@/lib/openrouter/client';
 import { createMessage, updateConversation, generateId } from '@/lib/storage/operations';
 import { X, Settings, Plus } from 'lucide-react';
 
@@ -13,7 +13,8 @@ interface ConversationPanelProps {
   conversation: Conversation;
   onClose?: () => void;
   onBranch?: (branchContext: BranchContext) => void;
-  onMessagesUpdate?: (messages: Message[]) => void;
+  onBranchToConversation?: (conversationId: string, selectedText: string) => void;
+  availableConversations?: Conversation[];
   isActive?: boolean;
 }
 
@@ -21,7 +22,8 @@ export function ConversationPanel({
   conversation,
   onClose,
   onBranch,
-  onMessagesUpdate,
+  onBranchToConversation,
+  availableConversations = [],
   isActive = false,
 }: ConversationPanelProps) {
   const [messages, setMessages] = useState<Message[]>(conversation.messages || []);
@@ -32,16 +34,38 @@ export function ConversationPanel({
   const [branchSelection, setBranchSelection] = useState<{ message: Message; text: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Sync messages with parent
+  // Sync messages from conversation prop changes
   useEffect(() => {
-    onMessagesUpdate?.(messages);
-  }, [messages, onMessagesUpdate]);
+    setMessages(conversation.messages || []);
+  }, [conversation.id]); // Only update when conversation changes
 
-  const handleSendMessage = async (content: string) => {
-    const apiKey = getStoredApiKey();
-    if (!apiKey) {
-      alert('Please set your OpenRouter API key in settings');
-      return;
+  // Clear branch selection when clicking elsewhere or selection changes
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim();
+      if (!selectedText && branchSelection) {
+        setBranchSelection(null);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    document.addEventListener('mousedown', handleSelectionChange);
+
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      document.removeEventListener('mousedown', handleSelectionChange);
+    };
+  }, [branchSelection]);
+
+  const handleSendMessage = async (content: string, mentionedTexts?: string[]) => {
+    // Combine mentioned texts and user content into a single prompt
+    let fullContent = content;
+    if (mentionedTexts && mentionedTexts.length > 0) {
+      const referencesSection = mentionedTexts
+        .map((text, index) => `[Reference ${index + 1}]\n${text}`)
+        .join('\n\n');
+      fullContent = `${referencesSection}\n\n---\n\n${content}`;
     }
 
     // Create user message
@@ -49,7 +73,7 @@ export function ConversationPanel({
       id: generateId(),
       conversationId: conversation.id,
       role: 'user',
-      content,
+      content: fullContent,
       timestamp: Date.now(),
     };
 
@@ -58,13 +82,14 @@ export function ConversationPanel({
 
     // Save user message to storage
     await createMessage(userMessage);
-    await updateConversation(conversation.id, { messages: updatedMessages });
+    // Clear mentionedTexts after sending
+    await updateConversation(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
 
     // Start streaming assistant response
     setIsStreaming(true);
     setStreamingContent('');
 
-    const client = new OpenRouterClient(apiKey);
+    const client = new OpenRouterClient();
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
@@ -101,7 +126,7 @@ export function ConversationPanel({
         console.log('Request aborted');
       } else {
         console.error('Error streaming chat:', error);
-        alert('Error communicating with OpenRouter API. Please check your API key and try again.');
+        alert('Error communicating with the API. Please make sure your API key is set in .env.local and try again.');
       }
     } finally {
       setIsStreaming(false);
@@ -111,7 +136,12 @@ export function ConversationPanel({
   };
 
   const handleMessageSelect = (message: Message, selectedText: string) => {
-    setBranchSelection({ message, text: selectedText });
+    if (selectedText) {
+      setBranchSelection({ message, text: selectedText });
+    } else {
+      // Clear selection when text is empty
+      setBranchSelection(null);
+    }
   };
 
   const handleBranch = () => {
@@ -122,6 +152,13 @@ export function ConversationPanel({
         selectedText: branchSelection.text,
       };
       onBranch(branchContext);
+      setBranchSelection(null);
+    }
+  };
+
+  const handleBranchToExistingConversation = (conversationId: string) => {
+    if (onBranchToConversation && branchSelection) {
+      onBranchToConversation(conversationId, branchSelection.text);
       setBranchSelection(null);
     }
   };
@@ -142,18 +179,18 @@ export function ConversationPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-white dark:bg-gray-900 ${isActive ? 'ring-2 ring-blue-500' : ''}`}>
+    <div className={`flex flex-col h-full bg-black border-r border-white/10 ${isActive ? 'ring-1 ring-blue-500/50' : ''}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60 backdrop-blur-sm">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h2 className="text-sm font-medium truncate">
+          <h2 className="text-sm font-medium text-gray-300 truncate">
             {conversation.title || `Conversation ${conversation.position + 1}`}
           </h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => setShowModelSelector(!showModelSelector)}
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
             title="Change model"
           >
             <Settings className="w-4 h-4" />
@@ -161,7 +198,7 @@ export function ConversationPanel({
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+              className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
               title="Close conversation"
             >
               <X className="w-4 h-4" />
@@ -172,15 +209,15 @@ export function ConversationPanel({
 
       {/* Model Selector */}
       {showModelSelector && (
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">Select Model</label>
+        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
+          <label className="text-xs font-medium text-gray-400 mb-2 block">Select Model</label>
           <select
             value={selectedModel}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="w-full text-sm px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm px-3 py-2 border border-white/10 rounded-lg bg-white/5 text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             {POPULAR_MODELS.map((model) => (
-              <option key={model.id} value={model.id}>
+              <option key={model.id} value={model.id} className="bg-gray-900">
                 {model.name}
               </option>
             ))}
@@ -197,10 +234,21 @@ export function ConversationPanel({
       />
 
       {/* Input */}
-      <MessageInput onSend={handleSendMessage} disabled={isStreaming} />
+      <MessageInput
+        onSend={handleSendMessage}
+        disabled={isStreaming}
+        mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
+      />
 
       {/* Branch Button */}
-      {branchSelection && <BranchButton onBranch={handleBranch} />}
+      {branchSelection && (
+        <BranchButton
+          onBranch={handleBranch}
+          onBranchToConversation={handleBranchToExistingConversation}
+          availableConversations={availableConversations}
+          currentConversationId={conversation.id}
+        />
+      )}
     </div>
   );
 }

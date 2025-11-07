@@ -44,33 +44,32 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
       <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
         <FolderOpen className="w-12 h-12 mb-2 opacity-50" />
         <p className="text-sm text-center">No saved groups yet</p>
-        <p className="text-xs text-center mt-1">Create a conversation to get started</p>
+        <p className="text-xs text-center mt-1 text-gray-600">Create a conversation to get started</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Saved Groups</h2>
+      <div className="px-4 py-3 border-b border-white/10">
+        <h2 className="text-sm font-semibold text-gray-300">Saved Groups</h2>
         <p className="text-xs text-gray-500 mt-0.5">{groups.length} group{groups.length !== 1 ? 's' : ''}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {groups.map((group) => (
-          <button
+          <div
             key={group.id}
             onClick={() => onSelectGroup(group)}
-            className={`w-full text-left px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-              activeGroupId === group.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500' : ''
-            }`}
-            disabled={deletingId === group.id}
+            className={`w-full text-left px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer ${
+              activeGroupId === group.id ? 'bg-white/10 border-l-4 border-l-blue-500' : ''
+            } ${deletingId === group.id ? 'opacity-50 pointer-events-none' : ''}`}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <FolderOpen className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <h3 className="text-sm font-medium truncate">
+                  <h3 className="text-sm font-medium truncate text-gray-200">
                     {group.name || `Group ${group.conversationIds.length} conversations`}
                   </h3>
                 </div>
@@ -86,7 +85,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
                     {group.tags.map((tag, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 rounded-full"
+                        className="px-2 py-0.5 text-xs bg-white/10 text-gray-400 rounded-full"
                       >
                         {tag}
                       </span>
@@ -96,14 +95,14 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
               </div>
               <button
                 onClick={(e) => handleDelete(e, group.id)}
-                className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-gray-400 hover:text-red-600 transition-colors"
+                className="p-1 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-400 transition-colors"
                 disabled={deletingId === group.id}
                 title="Delete group"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>

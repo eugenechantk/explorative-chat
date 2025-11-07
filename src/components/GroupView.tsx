@@ -10,7 +10,6 @@ import {
   updateConversation,
   updateGroup,
   generateId,
-  createMessage,
 } from '@/lib/storage/operations';
 import { Plus } from 'lucide-react';
 
@@ -26,10 +25,17 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     initialConversations[0]?.id || null
   );
 
-  // Notify parent of updates
+  // Sync conversations from props when they change
   useEffect(() => {
-    onGroupUpdate?.(group, conversations);
-  }, [group, conversations, onGroupUpdate]);
+    setConversations(initialConversations);
+  }, [initialConversations]);
+
+  // Notify parent of updates when conversations change
+  useEffect(() => {
+    if (conversations !== initialConversations) {
+      onGroupUpdate?.(group, conversations);
+    }
+  }, [conversations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAddConversation = async () => {
     const newConversation: Conversation = {
@@ -91,7 +97,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   };
 
   const handleBranch = async (branchContext: BranchContext) => {
-    // Create a new conversation with the branched content
+    // Create a new conversation with prepopulated input
     const newConversation: Conversation = {
       id: generateId(),
       groupId: group.id,
@@ -100,27 +106,10 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
       createdAt: Date.now(),
       updatedAt: Date.now(),
       position: conversations.length,
+      mentionedTexts: branchContext.selectedText ? [branchContext.selectedText] : [],
     };
 
     await createConversation(newConversation);
-
-    // Create initial message with branch context
-    if (branchContext.selectedText) {
-      const initialMessage = {
-        id: generateId(),
-        conversationId: newConversation.id,
-        role: 'user' as const,
-        content: branchContext.selectedText,
-        timestamp: Date.now(),
-        branchSourceConversationId: branchContext.sourceConversationId,
-        branchSourceMessageId: branchContext.sourceMessageId,
-        branchSelectedText: branchContext.selectedText,
-      };
-
-      await createMessage(initialMessage);
-      newConversation.messages = [initialMessage];
-      await updateConversation(newConversation.id, { messages: [initialMessage] });
-    }
 
     const updatedConversations = [...conversations, newConversation];
     const updatedGroup = {
@@ -135,12 +124,27 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     setActiveConversationId(newConversation.id);
   };
 
-  const handleMessagesUpdate = async (conversationId: string, messages: any[]) => {
-    const updatedConversations = conversations.map((c) =>
-      c.id === conversationId ? { ...c, messages, updatedAt: Date.now() } : c
+  const handleBranchToExistingConversation = async (conversationId: string, selectedText: string) => {
+    // Find the target conversation
+    const targetConversation = conversations.find(c => c.id === conversationId);
+    if (!targetConversation) return;
+
+    // Append the new selected text to existing mentionedTexts array
+    const existingMentions = targetConversation.mentionedTexts || [];
+    const newMentionedTexts = [...existingMentions, selectedText];
+
+    // Update the conversation with the new mentioned texts array
+    await updateConversation(conversationId, { mentionedTexts: newMentionedTexts });
+
+    // Update local state to trigger re-render
+    const updatedConversations = conversations.map(c =>
+      c.id === conversationId ? { ...c, mentionedTexts: newMentionedTexts } : c
     );
+
     setConversations(updatedConversations);
+    setActiveConversationId(conversationId);
   };
+
 
   if (conversations.length === 0) {
     return (
@@ -173,7 +177,8 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
           <ConversationPanel
             conversation={conversations[0]}
             onBranch={handleBranch}
-            onMessagesUpdate={(messages) => handleMessagesUpdate(conversations[0].id, messages)}
+            onBranchToConversation={handleBranchToExistingConversation}
+            availableConversations={conversations}
             isActive={true}
           />
         </div>
@@ -193,29 +198,33 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
           New Conversation
         </button>
       </div>
-      <div className="flex-1 overflow-hidden">
-        <PanelGroup direction="horizontal">
-          {conversations.map((conversation, index) => (
-            <div key={conversation.id}>
-              <Panel
-                defaultSize={100 / conversations.length}
-                minSize={20}
-                onClick={() => setActiveConversationId(conversation.id)}
-              >
-                <ConversationPanel
-                  conversation={conversation}
-                  onClose={() => handleCloseConversation(conversation.id)}
-                  onBranch={handleBranch}
-                  onMessagesUpdate={(messages) => handleMessagesUpdate(conversation.id, messages)}
-                  isActive={activeConversationId === conversation.id}
-                />
-              </Panel>
-              {index < conversations.length - 1 && (
-                <PanelResizeHandle className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 transition-colors" />
-              )}
-            </div>
-          ))}
-        </PanelGroup>
+      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+        <div className="h-full flex" style={{ minWidth: `${conversations.length * 600}px` }}>
+          <PanelGroup direction="horizontal">
+            {conversations.map((conversation, index) => (
+              <div key={conversation.id}>
+                <Panel
+                  defaultSize={100 / conversations.length}
+                  minSize={20}
+                  onClick={() => setActiveConversationId(conversation.id)}
+                  style={{ minWidth: '600px' }}
+                >
+                  <ConversationPanel
+                    conversation={conversation}
+                    onClose={() => handleCloseConversation(conversation.id)}
+                    onBranch={handleBranch}
+                    onBranchToConversation={handleBranchToExistingConversation}
+                    availableConversations={conversations}
+                    isActive={activeConversationId === conversation.id}
+                  />
+                </Panel>
+                {index < conversations.length - 1 && (
+                  <PanelResizeHandle className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 transition-colors" />
+                )}
+              </div>
+            ))}
+          </PanelGroup>
+        </div>
       </div>
     </div>
   );
