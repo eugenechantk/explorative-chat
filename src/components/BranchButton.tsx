@@ -24,6 +24,10 @@ export function BranchButton({
   currentConversationId,
   onDebugLog,
 }: BranchButtonProps) {
+  // Log render (won't cause loop)
+  console.log('[BranchButton] Rendering...');
+  onDebugLog?.('[BranchButton] Render function called');
+
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

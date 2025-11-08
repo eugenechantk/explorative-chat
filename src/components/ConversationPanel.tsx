@@ -77,6 +77,15 @@ export function ConversationPanel({
     }
   }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Log when branchSelection changes
+  useEffect(() => {
+    if (branchSelection) {
+      addDebugLog(`🔔 branchSelection state SET - text: "${branchSelection.text.substring(0, 20)}"`);
+    } else {
+      addDebugLog('🔔 branchSelection state CLEARED');
+    }
+  }, [branchSelection]);
+
   // Track text selection for branching
   useEffect(() => {
     addDebugLog('selectionchange listener attached');

@@ -25,8 +25,6 @@ export function SelectionDebug({
 
   useEffect(() => {
     // Test if @supports query matches
-    const testEl = document.createElement('div');
-    testEl.style.webkitTouchCallout = 'default';
     setSupportsTest(CSS.supports('-webkit-touch-callout', 'default'));
   }, []);
 
