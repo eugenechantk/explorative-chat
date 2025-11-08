@@ -295,7 +295,7 @@ export default function Home() {
           <h1 className="text-sm font-bold text-white font-mono tracking-tight">EXPLORATIVE CHAT</h1>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500"
+            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -305,7 +305,7 @@ export default function Home() {
           <button
             onClick={handleCreateNewConversation}
             disabled={isCreating}
-            className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors"
+            className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors cursor-pointer"
           >
             {isCreating ? (
               <>
@@ -346,7 +346,7 @@ export default function Home() {
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500"
+              className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500 cursor-pointer"
             >
               <Menu className="w-4 h-4" />
             </button>
@@ -366,7 +366,7 @@ export default function Home() {
           {activeConversation && activeBranches.length > 0 && (
             <button
               onClick={handleAddBranch}
-              className="px-3 md:px-4 h-full hover:bg-zinc-900 border-l border-zinc-800 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors"
+              className="px-3 md:px-4 h-full hover:bg-zinc-900 border-l border-zinc-800 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">NEW BRANCH</span>
@@ -406,7 +406,7 @@ export default function Home() {
               <button
                 onClick={handleCreateNewConversation}
                 disabled={isCreating}
-                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors min-w-[200px] justify-center"
+                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors min-w-[200px] justify-center cursor-pointer"
               >
                 {isCreating ? (
                   <>

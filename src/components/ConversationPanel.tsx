@@ -226,7 +226,7 @@ export function ConversationPanel({
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowModelSelector(!showModelSelector)}
-            className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+            className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 cursor-pointer"
             title="Change model"
           >
             <Settings className="w-4 h-4 text-zinc-500" />
@@ -234,7 +234,7 @@ export function ConversationPanel({
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+              className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 cursor-pointer"
               title="Close branch"
             >
               <X className="w-4 h-4 text-zinc-500" />

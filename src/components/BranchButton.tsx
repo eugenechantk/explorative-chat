@@ -108,7 +108,7 @@ export function BranchButton({
         {/* Main Branch Button */}
         <button
           onClick={handleBranch}
-          className="px-3 py-2 md:py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px]"
+          className="px-3 py-2 md:py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px] cursor-pointer"
           title="Branch to new branch"
         >
           <GitBranch className="w-4 h-4" />
@@ -120,7 +120,7 @@ export function BranchButton({
           <>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="px-2 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-l-0 transition-colors min-h-[44px] min-w-[44px]"
+              className="px-2 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-l-0 transition-colors min-h-[44px] min-w-[44px] cursor-pointer"
               title="Branch to existing branch"
             >
               <ChevronDown className={`w-4 h-4 text-white transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
@@ -137,7 +137,7 @@ export function BranchButton({
                     <button
                       key={branch.id}
                       onClick={() => handleBranchToBranch(branch.id)}
-                      className="w-full text-left px-3 py-3 md:py-2 text-sm text-white hover:bg-zinc-950 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[44px]"
+                      className="w-full text-left px-3 py-3 md:py-2 text-sm text-white hover:bg-zinc-950 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[44px] cursor-pointer"
                     >
                       <GitBranch className="w-3 h-3 text-zinc-500" />
                       <span className="truncate">

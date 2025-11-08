@@ -95,7 +95,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
                 </div>
                 <button
                   onClick={() => handleRemoveMention(index)}
-                  className="flex-shrink-0 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="flex-shrink-0 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
                   aria-label="Remove reference"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
         <button
           onClick={handleSend}
           disabled={disabled || (!message.trim() && mentions.length === 0)}
-          className="px-3 md:px-4 hover:bg-zinc-900 border-l border-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-zinc-300"
+          className="px-3 md:px-4 hover:bg-zinc-900 border-l border-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-zinc-300 cursor-pointer"
           aria-label="Send message"
         >
           {isStreaming ? (

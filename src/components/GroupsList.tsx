@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Conversation } from '@/lib/types';
-import { FolderOpen, Trash2, Calendar } from 'lucide-react';
+import { FolderOpen, Trash2, Calendar, GitBranch } from 'lucide-react';
 
 interface GroupsListProps {
   groups: Conversation[];
@@ -62,20 +62,20 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-5 h-5 bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                    <FolderOpen className="w-3 h-3 text-zinc-400" />
-                  </div>
+                <div className="mb-2">
                   <h3 className="text-sm truncate text-white font-mono leading-snug">
                     {conversation.name || `CONVERSATION ${(conversation.branchIds || []).length} BRANCHES`}
                   </h3>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-600 font-mono">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
+                <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-mono">
+                  <span className="flex items-center gap-0.5">
+                    <Calendar className="w-2.5 h-2.5" />
                     {formatDate(conversation.updatedAt).toUpperCase()}
                   </span>
-                  <span>{(conversation.branchIds || []).length} BRANCH{(conversation.branchIds || []).length !== 1 ? 'ES' : ''}</span>
+                  <span className="flex items-center gap-0.5">
+                    <GitBranch className="w-2.5 h-2.5" />
+                    {(conversation.branchIds || []).length}
+                  </span>
                 </div>
                 {conversation.tags && conversation.tags.length > 0 && (
                   <div className="flex gap-1 mt-2">
@@ -92,7 +92,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
               </div>
               <button
                 onClick={(e) => handleDelete(e, conversation.id)}
-                className="p-2 md:p-1 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 text-zinc-500 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
+                className="p-2 md:p-1 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 text-zinc-500 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center cursor-pointer"
                 disabled={deletingId === conversation.id}
                 title="Delete conversation"
               >
