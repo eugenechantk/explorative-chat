@@ -181,6 +181,22 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
 
     setBranches(updatedBranches);
     setActiveBranchId(branchId);
+
+    // Scroll to the target branch
+    const targetPanelElement = panelRefsMap.current.get(branchId);
+    if (targetPanelElement) {
+      // Use requestAnimationFrame to ensure DOM has been painted
+      requestAnimationFrame(() => {
+        // Add delay to ensure panel layout is complete
+        setTimeout(() => {
+          targetPanelElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'start'
+          });
+        }, 100);
+      });
+    }
   };
 
 
