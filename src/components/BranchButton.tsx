@@ -105,17 +105,18 @@ export function BranchButton({
   return (
     <div
       ref={dropdownRef}
+      data-branch-button
       className="absolute z-50 transform -translate-x-1/2 -translate-y-full -mt-2"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
       }}
     >
-      <div className="flex items-center gap-0 shadow-2xl">
+      <div className="flex items-center gap-0 shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* Main Branch Button */}
         <button
           onClick={handleBranch}
-          className="px-3 py-2 md:py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px] cursor-pointer"
+          className="px-4 py-3 md:py-2 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 text-white flex items-center gap-2 text-sm md:text-sm font-mono transition-colors min-h-[48px] md:min-h-[44px] cursor-pointer touch-manipulation"
           title="Branch to new branch"
         >
           <GitBranch className="w-4 h-4" />
@@ -127,7 +128,7 @@ export function BranchButton({
           <>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="px-2 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-l-0 transition-colors min-h-[44px] min-w-[44px] cursor-pointer"
+              className="px-3 py-3 md:py-2 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 border-l-0 transition-colors min-h-[48px] min-w-[48px] md:min-h-[44px] md:min-w-[44px] cursor-pointer touch-manipulation"
               title="Branch to existing branch"
             >
               <ChevronDown className={`w-4 h-4 text-white transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
@@ -144,7 +145,7 @@ export function BranchButton({
                     <button
                       key={branch.id}
                       onClick={() => handleBranchToBranch(branch.id)}
-                      className="w-full text-left px-3 py-3 md:py-2 text-sm text-white hover:bg-zinc-950 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[44px] cursor-pointer"
+                      className="w-full text-left px-3 py-3 text-sm text-white hover:bg-zinc-950 active:bg-zinc-900 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[48px] md:min-h-[44px] cursor-pointer touch-manipulation"
                     >
                       <GitBranch className="w-3 h-3 text-zinc-500" />
                       <span className="truncate">

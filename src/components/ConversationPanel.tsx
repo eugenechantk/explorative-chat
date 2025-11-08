@@ -52,7 +52,7 @@ export function ConversationPanel({
     }
   }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear branch selection when clicking/touching elsewhere or selection changes
+  // Clear branch selection when clicking elsewhere or selection changes
   useEffect(() => {
     const handleSelectionChange = () => {
       const selection = window.getSelection();
@@ -62,14 +62,24 @@ export function ConversationPanel({
       }
     };
 
+    const handleMouseDown = (e: MouseEvent) => {
+      // Only clear if clicking outside the branch button
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-branch-button]')) {
+        const selection = window.getSelection();
+        const selectedText = selection?.toString().trim();
+        if (!selectedText && branchSelection) {
+          setBranchSelection(null);
+        }
+      }
+    };
+
     document.addEventListener('selectionchange', handleSelectionChange);
-    document.addEventListener('mousedown', handleSelectionChange);
-    document.addEventListener('touchstart', handleSelectionChange);
+    document.addEventListener('mousedown', handleMouseDown);
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
-      document.removeEventListener('mousedown', handleSelectionChange);
-      document.removeEventListener('touchstart', handleSelectionChange);
+      document.removeEventListener('mousedown', handleMouseDown);
     };
   }, [branchSelection]);
 

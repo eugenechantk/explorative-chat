@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Message } from '@/lib/types';
 import { User, Bot, Sparkles } from 'lucide-react';
 import { MessageContent } from './MessageContent';
@@ -21,6 +21,8 @@ export function MessageList({
   const streamingMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
   const wasStreamingRef = useRef(isStreaming);
+  const [lastSelectedMessage, setLastSelectedMessage] = useState<Message | null>(null);
+  const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-scroll to top of new message when streaming starts
   useEffect(() => {
@@ -41,15 +43,68 @@ export function MessageList({
     wasStreamingRef.current = isStreaming;
   }, [messages.length, isStreaming, streamingContent]);
 
+  // Global selection change handler for iOS Safari
+  useEffect(() => {
+    const handleGlobalSelectionChange = () => {
+      // Clear any pending timeout
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+      }
+
+      // Delay to ensure selection is stable (important for iOS Safari)
+      selectionTimeoutRef.current = setTimeout(() => {
+        const selection = window.getSelection();
+        const selectedText = selection?.toString().trim();
+
+        if (selectedText && onMessageSelect) {
+          // Find which message contains the selection
+          const anchorNode = selection?.anchorNode;
+          if (anchorNode) {
+            // Find the message element
+            let messageElement = anchorNode.parentElement;
+            while (messageElement && !messageElement.hasAttribute('data-message-id')) {
+              messageElement = messageElement.parentElement;
+            }
+
+            if (messageElement) {
+              const messageId = messageElement.getAttribute('data-message-id');
+              const message = messages.find(m => m.id === messageId);
+              if (message) {
+                setLastSelectedMessage(message);
+                onMessageSelect(message, selectedText);
+              }
+            }
+          }
+        } else if (!selectedText && onMessageSelect && lastSelectedMessage) {
+          // Clear selection
+          onMessageSelect(lastSelectedMessage, '');
+          setLastSelectedMessage(null);
+        }
+      }, 150);
+    };
+
+    document.addEventListener('selectionchange', handleGlobalSelectionChange);
+
+    return () => {
+      document.removeEventListener('selectionchange', handleGlobalSelectionChange);
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+      }
+    };
+  }, [messages, onMessageSelect, lastSelectedMessage]);
+
   const handleTextSelection = (message: Message) => {
-    const selection = window.getSelection();
-    const selectedText = selection?.toString().trim();
-    if (selectedText && onMessageSelect) {
-      onMessageSelect(message, selectedText);
-    } else if (!selectedText && onMessageSelect) {
-      // Clear selection when text is unselected
-      onMessageSelect(message, '');
-    }
+    // Use a small delay to ensure selection is finalized on iOS Safari
+    setTimeout(() => {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim();
+      if (selectedText && onMessageSelect) {
+        onMessageSelect(message, selectedText);
+      } else if (!selectedText && onMessageSelect) {
+        // Clear selection when text is unselected
+        onMessageSelect(message, '');
+      }
+    }, 100);
   };
 
   return (
@@ -65,6 +120,7 @@ export function MessageList({
       {messages.map((message) => (
         <div
           key={message.id}
+          data-message-id={message.id}
           className="flex gap-3 px-3 py-3"
           onMouseUp={() => handleTextSelection(message)}
           onTouchEnd={() => handleTextSelection(message)}

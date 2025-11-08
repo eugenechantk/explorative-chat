@@ -90,3 +90,24 @@ code, pre {
   background: hsl(212, 100%, 48%, 0.3);
   color: var(--foreground);
 }
+
+/* iOS Safari specific improvements */
+@supports (-webkit-touch-callout: none) {
+  /* Improve text selection on iOS */
+  * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* But disable selection on interactive elements */
+  button, input, select, textarea {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Enable smooth scrolling on iOS */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
