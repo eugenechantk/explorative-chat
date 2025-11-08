@@ -224,7 +224,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 h-full flex flex-col overflow-hidden bg-black w-full md:w-auto">
         {/* Top Bar */}
-        <div className="flex items-center gap-2 md:gap-4 px-3 py-3 bg-zinc-950 border-b border-zinc-800 flex-shrink-0">
+        <div className="flex items-center gap-2 md:gap-4 px-3 bg-zinc-950 border-b border-zinc-800 flex-shrink-0">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
@@ -233,7 +233,7 @@ export default function Home() {
               <Menu className="w-4 h-4" />
             </button>
           )}
-          <div className="flex-1">
+          <div className="flex-1 py-3">
             {activeGroup && (
               <div>
                 <h2 className="text-sm font-medium text-white font-mono">
@@ -248,7 +248,7 @@ export default function Home() {
           {activeGroup && activeConversations.length > 0 && (
             <button
               onClick={handleAddConversation}
-              className="px-2 md:px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px]"
+              className="px-3 md:px-4 h-full hover:bg-zinc-900 border-l border-zinc-800 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">NEW BRANCH</span>
