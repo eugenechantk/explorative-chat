@@ -52,7 +52,7 @@ export function MessageList({
       {messages.length === 0 && !isStreaming && (
         <div className="flex flex-col items-center justify-center h-full text-center px-3">
           <Sparkles className="w-12 h-12 mb-4 text-zinc-700" />
-          <p className="text-base font-mono text-white">START A NEW CONVERSATION</p>
+          <p className="text-base font-mono text-white">START A NEW BRANCH</p>
           <p className="text-sm mt-2 text-zinc-500 font-mono">TYPE A MESSAGE BELOW TO BEGIN</p>
         </div>
       )}
@@ -75,7 +75,7 @@ export function MessageList({
             {message.branchSourceMessageId && (
               <div className="text-xs text-zinc-500 mb-2 pb-2 border-b border-zinc-800 font-mono">
                 <Sparkles className="w-3 h-3 inline mr-1" />
-                BRANCHED CONVERSATION
+                BRANCHED FROM ANOTHER BRANCH
                 {message.branchSelectedText && (
                   <div className="mt-1 italic text-zinc-600">
                     &quot;{message.branchSelectedText.slice(0, 100)}

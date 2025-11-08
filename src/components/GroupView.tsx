@@ -2,52 +2,52 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import type { Conversation, ConversationGroup, BranchContext } from '@/lib/types';
+import type { Branch, Conversation, BranchContext } from '@/lib/types';
 import { ConversationPanel } from './ConversationPanel';
 import {
-  createConversation,
-  deleteConversation,
+  createBranch,
+  deleteBranch,
+  updateBranch,
   updateConversation,
-  updateGroup,
   generateId,
 } from '@/lib/storage/operations';
 
 interface GroupViewProps {
-  group: ConversationGroup;
-  conversations: Conversation[];
-  onGroupUpdate?: (group: ConversationGroup, conversations: Conversation[]) => void;
+  group: Conversation;
+  conversations: Branch[];
+  onGroupUpdate?: (group: Conversation, conversations: Branch[]) => void;
 }
 
-export function GroupView({ group, conversations: initialConversations, onGroupUpdate }: GroupViewProps) {
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    initialConversations[0]?.id || null
+export function GroupView({ group, conversations: initialBranches, onGroupUpdate }: GroupViewProps) {
+  const [branches, setBranches] = useState<Branch[]>(initialBranches);
+  const [activeBranchId, setActiveBranchId] = useState<string | null>(
+    initialBranches[0]?.id || null
   );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const panelRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
-  const prevConversationsLengthRef = useRef<number>(initialConversations.length);
+  const prevBranchesLengthRef = useRef<number>(initialBranches.length);
 
-  // Sync conversations from props when they change
+  // Sync branches from props when they change
   useEffect(() => {
-    setConversations(initialConversations);
-  }, [initialConversations]);
+    setBranches(initialBranches);
+  }, [initialBranches]);
 
-  // Notify parent of updates when conversations change
+  // Notify parent of updates when branches change
   useEffect(() => {
-    if (conversations !== initialConversations) {
-      onGroupUpdate?.(group, conversations);
+    if (branches !== initialBranches) {
+      onGroupUpdate?.(group, branches);
     }
-  }, [conversations]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [branches]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-scroll to newest conversation when a new conversation is added (not on initial load)
+  // Auto-scroll to newest branch when a new branch is added (not on initial load)
   useEffect(() => {
-    const prevLength = prevConversationsLengthRef.current;
-    const currentLength = conversations.length;
+    const prevLength = prevBranchesLengthRef.current;
+    const currentLength = branches.length;
 
-    // Only scroll if length increased (new conversation added) and we have multiple conversations
+    // Only scroll if length increased (new branch added) and we have multiple branches
     if (currentLength > prevLength && currentLength > 1) {
-      const lastConversation = conversations[conversations.length - 1];
-      const lastPanelElement = panelRefsMap.current.get(lastConversation.id);
+      const lastBranch = branches[branches.length - 1];
+      const lastPanelElement = panelRefsMap.current.get(lastBranch.id);
 
       if (lastPanelElement) {
         // Use requestAnimationFrame to ensure DOM has been painted
@@ -65,149 +65,149 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     }
 
     // Update the ref for next comparison
-    prevConversationsLengthRef.current = currentLength;
-  }, [conversations.length]);
+    prevBranchesLengthRef.current = currentLength;
+  }, [branches.length]);
 
-  const handleAddConversation = async () => {
-    const newConversation: Conversation = {
+  const handleAddBranch = async () => {
+    const newBranch: Branch = {
       id: generateId(),
-      groupId: group.id,
+      conversationId: group.id,
       messages: [],
       model: 'anthropic/claude-3.5-sonnet',
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      position: conversations.length,
+      position: branches.length,
     };
 
-    await createConversation(newConversation);
+    await createBranch(newBranch);
 
-    const updatedConversations = [...conversations, newConversation];
-    const updatedGroup = {
+    const updatedBranches = [...branches, newBranch];
+    const updatedConversation = {
       ...group,
-      conversationIds: [...group.conversationIds, newConversation.id],
+      branchIds: [...group.branchIds, newBranch.id],
       updatedAt: Date.now(),
     };
 
-    await updateGroup(group.id, updatedGroup);
+    await updateConversation(group.id, updatedConversation);
 
-    setConversations(updatedConversations);
-    setActiveConversationId(newConversation.id);
+    setBranches(updatedBranches);
+    setActiveBranchId(newBranch.id);
   };
 
-  const handleCloseConversation = async (conversationId: string) => {
-    // Don't allow closing the last conversation
-    if (conversations.length === 1) {
+  const handleCloseBranch = async (branchId: string) => {
+    // Don't allow closing the last branch
+    if (branches.length === 1) {
       return;
     }
 
-    // Don't allow closing the first conversation (position 0)
-    const conversationToClose = conversations.find(c => c.id === conversationId);
-    if (conversationToClose?.position === 0) {
+    // Don't allow closing the first branch (position 0)
+    const branchToClose = branches.find(c => c.id === branchId);
+    if (branchToClose?.position === 0) {
       return;
     }
 
-    await deleteConversation(conversationId);
+    await deleteBranch(branchId);
 
-    const updatedConversations = conversations
-      .filter((c) => c.id !== conversationId)
+    const updatedBranches = branches
+      .filter((c) => c.id !== branchId)
       .map((c, index) => ({ ...c, position: index }));
 
     // Update positions in storage
-    for (const conv of updatedConversations) {
-      await updateConversation(conv.id, { position: conv.position });
+    for (const branch of updatedBranches) {
+      await updateBranch(branch.id, { position: branch.position });
     }
 
-    const updatedGroup = {
+    const updatedConversation = {
       ...group,
-      conversationIds: updatedConversations.map((c) => c.id),
+      branchIds: updatedBranches.map((c) => c.id),
       updatedAt: Date.now(),
     };
 
-    await updateGroup(group.id, updatedGroup);
+    await updateConversation(group.id, updatedConversation);
 
-    setConversations(updatedConversations);
+    setBranches(updatedBranches);
 
-    // Update active conversation if needed
-    if (activeConversationId === conversationId) {
-      setActiveConversationId(updatedConversations[0]?.id || null);
+    // Update active branch if needed
+    if (activeBranchId === branchId) {
+      setActiveBranchId(updatedBranches[0]?.id || null);
     }
   };
 
   const handleBranch = async (branchContext: BranchContext) => {
-    // Create a new conversation with prepopulated input
-    const newConversation: Conversation = {
+    // Create a new branch with prepopulated input
+    const newBranch: Branch = {
       id: generateId(),
-      groupId: group.id,
+      conversationId: group.id,
       messages: [],
       model: 'anthropic/claude-3.5-sonnet',
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      position: conversations.length,
+      position: branches.length,
       mentionedTexts: branchContext.selectedText ? [branchContext.selectedText] : [],
     };
 
-    await createConversation(newConversation);
+    await createBranch(newBranch);
 
-    // Keep existing conversation objects to preserve their state
-    const updatedConversations = [...conversations, newConversation];
-    const updatedGroup = {
+    // Keep existing branch objects to preserve their state
+    const updatedBranches = [...branches, newBranch];
+    const updatedConversation = {
       ...group,
-      conversationIds: [...group.conversationIds, newConversation.id],
+      branchIds: [...group.branchIds, newBranch.id],
       updatedAt: Date.now(),
     };
 
-    await updateGroup(group.id, updatedGroup);
+    await updateConversation(group.id, updatedConversation);
 
-    setConversations(updatedConversations);
-    setActiveConversationId(newConversation.id);
+    setBranches(updatedBranches);
+    setActiveBranchId(newBranch.id);
   };
 
-  const handleBranchToExistingConversation = async (conversationId: string, selectedText: string) => {
-    // Find the target conversation
-    const targetConversation = conversations.find(c => c.id === conversationId);
-    if (!targetConversation) return;
+  const handleBranchToExistingBranch = async (branchId: string, selectedText: string) => {
+    // Find the target branch
+    const targetBranch = branches.find(c => c.id === branchId);
+    if (!targetBranch) return;
 
     // Append the new selected text to existing mentionedTexts array
-    const existingMentions = targetConversation.mentionedTexts || [];
+    const existingMentions = targetBranch.mentionedTexts || [];
     const newMentionedTexts = [...existingMentions, selectedText];
 
-    // Update the conversation with the new mentioned texts array
-    await updateConversation(conversationId, { mentionedTexts: newMentionedTexts });
+    // Update the branch with the new mentioned texts array
+    await updateBranch(branchId, { mentionedTexts: newMentionedTexts });
 
     // Update local state to trigger re-render
-    const updatedConversations = conversations.map(c =>
-      c.id === conversationId ? { ...c, mentionedTexts: newMentionedTexts } : c
+    const updatedBranches = branches.map(c =>
+      c.id === branchId ? { ...c, mentionedTexts: newMentionedTexts } : c
     );
 
-    setConversations(updatedConversations);
-    setActiveConversationId(conversationId);
+    setBranches(updatedBranches);
+    setActiveBranchId(branchId);
   };
 
 
-  if (conversations.length === 0) {
+  if (branches.length === 0) {
     return (
       <div className="flex items-center justify-center h-full bg-black">
-        <p className="text-zinc-500 text-sm font-mono">NO CONVERSATIONS IN THIS GROUP</p>
+        <p className="text-zinc-500 text-sm font-mono">NO BRANCHES IN THIS CONVERSATION</p>
       </div>
     );
   }
 
-  if (conversations.length === 1) {
-    // Single conversation - no need for resizable panels
+  if (branches.length === 1) {
+    // Single branch - no need for resizable panels
     return (
       <div className="h-full">
         <ConversationPanel
-          conversation={conversations[0]}
+          conversation={branches[0]}
           onBranch={handleBranch}
-          onBranchToConversation={handleBranchToExistingConversation}
-          availableConversations={conversations}
+          onBranchToConversation={handleBranchToExistingBranch}
+          availableConversations={branches}
           isActive={true}
         />
       </div>
     );
   }
 
-  // Multiple conversations - use resizable panels
+  // Multiple branches - use resizable panels
   return (
     <div
       ref={scrollContainerRef}
@@ -215,35 +215,35 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     >
       <div className="h-full flex snap-x snap-mandatory md:snap-none w-max">
         <PanelGroup direction="horizontal" className="h-full">
-          {conversations.map((conversation, index) => (
-            <div key={`wrapper-${conversation.id}`} className="contents">
+          {branches.map((branch, index) => (
+            <div key={`wrapper-${branch.id}`} className="contents">
               <div
                 ref={(el) => {
                   if (el) {
-                    panelRefsMap.current.set(conversation.id, el);
+                    panelRefsMap.current.set(branch.id, el);
                   } else {
-                    panelRefsMap.current.delete(conversation.id);
+                    panelRefsMap.current.delete(branch.id);
                   }
                 }}
                 className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
               >
                 <Panel
-              defaultSize={100 / conversations.length}
+              defaultSize={100 / branches.length}
               minSize={20}
-              onClick={() => setActiveConversationId(conversation.id)}
+              onClick={() => setActiveBranchId(branch.id)}
               className="h-full w-full"
             >
               <ConversationPanel
-                conversation={conversation}
-                onClose={conversation.position === 0 ? undefined : () => handleCloseConversation(conversation.id)}
+                conversation={branch}
+                onClose={branch.position === 0 ? undefined : () => handleCloseBranch(branch.id)}
                 onBranch={handleBranch}
-                onBranchToConversation={handleBranchToExistingConversation}
-                availableConversations={conversations}
-                isActive={activeConversationId === conversation.id}
+                onBranchToConversation={handleBranchToExistingBranch}
+                availableConversations={branches}
+                isActive={activeBranchId === branch.id}
               />
                 </Panel>
               </div>
-              {index < conversations.length - 1 && (
+              {index < branches.length - 1 && (
                 <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" />
               )}
             </div>

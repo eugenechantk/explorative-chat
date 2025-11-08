@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { GitBranch, ChevronDown } from 'lucide-react';
 
-interface Conversation {
+interface Branch {
   id: string;
   title?: string;
   position: number;
@@ -11,8 +11,8 @@ interface Conversation {
 
 interface BranchButtonProps {
   onBranch: () => void;
-  onBranchToConversation?: (conversationId: string) => void;
-  availableConversations?: Conversation[];
+  onBranchToConversation?: (branchId: string) => void;
+  availableConversations?: Branch[];
   currentConversationId?: string;
 }
 
@@ -62,9 +62,9 @@ export function BranchButton({
     setShowDropdown(false);
   };
 
-  const handleBranchToConversation = (conversationId: string) => {
+  const handleBranchToBranch = (branchId: string) => {
     if (onBranchToConversation) {
-      onBranchToConversation(conversationId);
+      onBranchToConversation(branchId);
       // Clear selection
       window.getSelection()?.removeAllRanges();
       setShowDropdown(false);
@@ -92,8 +92,8 @@ export function BranchButton({
     return null;
   }
 
-  const otherConversations = availableConversations.filter(c => c.id !== currentConversationId);
-  const hasOtherConversations = otherConversations.length > 0;
+  const otherBranches = availableConversations.filter(c => c.id !== currentConversationId);
+  const hasOtherBranches = otherBranches.length > 0;
 
   return (
     <div
@@ -109,19 +109,19 @@ export function BranchButton({
         <button
           onClick={handleBranch}
           className="px-3 py-2 md:py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px]"
-          title="Branch to new conversation"
+          title="Branch to new branch"
         >
           <GitBranch className="w-4 h-4" />
           NEW
         </button>
 
-        {/* Dropdown Toggle (only show if there are other conversations) */}
-        {hasOtherConversations && (
+        {/* Dropdown Toggle (only show if there are other branches) */}
+        {hasOtherBranches && (
           <>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="px-2 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-l-0 transition-colors min-h-[44px] min-w-[44px]"
-              title="Branch to existing conversation"
+              title="Branch to existing branch"
             >
               <ChevronDown className={`w-4 h-4 text-white transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </button>
@@ -131,17 +131,17 @@ export function BranchButton({
               <div className="absolute top-full mt-1 left-0 bg-black border border-zinc-800 shadow-2xl min-w-[200px] md:min-w-[200px] max-h-[300px] overflow-y-auto z-50">
                 <div>
                   <div className="px-3 py-2 text-xs font-semibold text-zinc-600 border-b border-zinc-800 font-mono">
-                    BRANCH TO CONVERSATION
+                    BRANCH TO BRANCH
                   </div>
-                  {otherConversations.map((conv) => (
+                  {otherBranches.map((branch) => (
                     <button
-                      key={conv.id}
-                      onClick={() => handleBranchToConversation(conv.id)}
+                      key={branch.id}
+                      onClick={() => handleBranchToBranch(branch.id)}
                       className="w-full text-left px-3 py-3 md:py-2 text-sm text-white hover:bg-zinc-950 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[44px]"
                     >
                       <GitBranch className="w-3 h-3 text-zinc-500" />
                       <span className="truncate">
-                        {conv.title || `CONVERSATION ${conv.position + 1}`}
+                        {branch.title || `BRANCH ${branch.position + 1}`}
                       </span>
                     </button>
                   ))}

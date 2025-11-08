@@ -1,20 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { Conversation, Message, BranchContext } from '@/lib/types';
+import type { Branch, Message, BranchContext } from '@/lib/types';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { BranchButton } from './BranchButton';
 import { OpenRouterClient, POPULAR_MODELS } from '@/lib/openrouter/client';
-import { createMessage, updateConversation, generateId } from '@/lib/storage/operations';
+import { createMessage, updateBranch, generateId } from '@/lib/storage/operations';
 import { X, Settings, Plus } from 'lucide-react';
 
 interface ConversationPanelProps {
-  conversation: Conversation;
+  conversation: Branch;
   onClose?: () => void;
   onBranch?: (branchContext: BranchContext) => void;
-  onBranchToConversation?: (conversationId: string, selectedText: string) => void;
-  availableConversations?: Conversation[];
+  onBranchToConversation?: (branchId: string, selectedText: string) => void;
+  availableConversations?: Branch[];
   isActive?: boolean;
 }
 
@@ -33,14 +33,14 @@ export function ConversationPanel({
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [branchSelection, setBranchSelection] = useState<{ message: Message; text: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const prevConversationIdRef = useRef(conversation.id);
+  const prevBranchIdRef = useRef(conversation.id);
 
-  // Sync messages from conversation prop changes
+  // Sync messages from branch prop changes
   useEffect(() => {
-    // If conversation ID changed, always sync (switching to different conversation)
-    if (prevConversationIdRef.current !== conversation.id) {
+    // If branch ID changed, always sync (switching to different branch)
+    if (prevBranchIdRef.current !== conversation.id) {
       setMessages(conversation.messages || []);
-      prevConversationIdRef.current = conversation.id;
+      prevBranchIdRef.current = conversation.id;
     }
     // Otherwise, only update if prop has more messages (e.g., loaded from storage)
     // Never overwrite with fewer messages to prevent data loss
@@ -81,7 +81,7 @@ export function ConversationPanel({
     // Create user message
     const userMessage: Message = {
       id: generateId(),
-      conversationId: conversation.id,
+      branchId: conversation.id,
       role: 'user',
       content: fullContent,
       timestamp: Date.now(),
@@ -93,7 +93,7 @@ export function ConversationPanel({
     // Save user message to storage
     await createMessage(userMessage);
     // Clear mentionedTexts after sending
-    await updateConversation(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
+    await updateBranch(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
 
     // Start streaming assistant response
     setIsStreaming(true);
@@ -119,7 +119,7 @@ export function ConversationPanel({
       // Create assistant message
       const assistantMessage: Message = {
         id: generateId(),
-        conversationId: conversation.id,
+        branchId: conversation.id,
         role: 'assistant',
         content: fullResponse,
         timestamp: Date.now(),
@@ -130,7 +130,7 @@ export function ConversationPanel({
 
       // Save assistant message to storage
       await createMessage(assistantMessage);
-      await updateConversation(conversation.id, { messages: finalMessages });
+      await updateBranch(conversation.id, { messages: finalMessages });
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request aborted');
@@ -157,7 +157,7 @@ export function ConversationPanel({
   const handleBranch = () => {
     if (onBranch && branchSelection) {
       const branchContext: BranchContext = {
-        sourceConversationId: conversation.id,
+        sourceBranchId: conversation.id,
         sourceMessageId: branchSelection.message.id,
         selectedText: branchSelection.text,
       };
@@ -166,16 +166,16 @@ export function ConversationPanel({
     }
   };
 
-  const handleBranchToExistingConversation = (conversationId: string) => {
+  const handleBranchToExistingBranch = (branchId: string) => {
     if (onBranchToConversation && branchSelection) {
-      onBranchToConversation(conversationId, branchSelection.text);
+      onBranchToConversation(branchId, branchSelection.text);
       setBranchSelection(null);
     }
   };
 
   const handleModelChange = async (newModel: string) => {
     setSelectedModel(newModel);
-    await updateConversation(conversation.id, { model: newModel });
+    await updateBranch(conversation.id, { model: newModel });
     setShowModelSelector(false);
   };
 
@@ -194,7 +194,7 @@ export function ConversationPanel({
       <div className="h-11 md:h-12 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <h2 className="text-xs md:text-sm font-medium text-white truncate font-mono">
-            {conversation.title || `CONVERSATION ${conversation.position + 1}`}
+            {conversation.title || `BRANCH ${conversation.position + 1}`}
           </h2>
         </div>
         <div className="flex items-center gap-1">
@@ -209,7 +209,7 @@ export function ConversationPanel({
             <button
               onClick={onClose}
               className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
-              title="Close conversation"
+              title="Close branch"
             >
               <X className="w-4 h-4 text-zinc-500" />
             </button>
@@ -258,7 +258,7 @@ export function ConversationPanel({
       {branchSelection && (
         <BranchButton
           onBranch={handleBranch}
-          onBranchToConversation={handleBranchToExistingConversation}
+          onBranchToConversation={handleBranchToExistingBranch}
           availableConversations={availableConversations}
           currentConversationId={conversation.id}
         />

@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { ConversationGroup, Conversation } from '@/lib/types';
+import type { Conversation, Branch } from '@/lib/types';
 import { GroupView } from '@/components/GroupView';
 import { GroupsList } from '@/components/GroupsList';
 import {
-  createGroup,
   createConversation,
-  getAllGroups,
-  getConversationsByGroup,
-  deleteGroup,
-  updateGroup,
+  createBranch,
+  getAllConversations,
+  getBranchesByConversation,
+  deleteConversation,
+  updateConversation,
   generateId,
 } from '@/lib/storage/operations';
 import { Menu, X, Plus } from 'lucide-react';
@@ -18,9 +18,9 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 
 export default function Home() {
-  const [groups, setGroups] = useState<ConversationGroup[]>([]);
-  const [activeGroup, setActiveGroup] = useState<ConversationGroup | null>(null);
-  const [activeConversations, setActiveConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [activeBranches, setActiveBranches] = useState<Branch[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed for mobile-first approach
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,43 +37,43 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkIfDesktop);
   }, []);
 
-  // Load groups on mount
+  // Load conversations on mount
   useEffect(() => {
-    loadGroups();
+    loadConversations();
   }, []);
 
-  const loadGroups = async () => {
+  const loadConversations = async () => {
     setIsLoading(true);
-    const allGroups = await getAllGroups();
-    setGroups(allGroups);
+    const allConversations = await getAllConversations();
+    setConversations(allConversations);
 
-    if (allGroups.length > 0 && !activeGroup) {
-      await selectGroup(allGroups[0]);
+    if (allConversations.length > 0 && !activeConversation) {
+      await selectConversation(allConversations[0]);
     }
 
     setIsLoading(false);
   };
 
-  const selectGroup = async (group: ConversationGroup) => {
-    const conversations = await getConversationsByGroup(group.id);
-    setActiveGroup(group);
-    setActiveConversations(conversations);
+  const selectConversation = async (conversation: Conversation) => {
+    const branches = await getBranchesByConversation(conversation.id);
+    setActiveConversation(conversation);
+    setActiveBranches(branches);
   };
 
-  const handleCreateNewGroup = async () => {
-    const newGroup: ConversationGroup = {
+  const handleCreateNewConversation = async () => {
+    const newConversation: Conversation = {
       id: generateId(),
-      conversationIds: [],
+      branchIds: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
 
-    await createGroup(newGroup);
+    await createConversation(newConversation);
 
-    // Create initial conversation
-    const initialConversation: Conversation = {
+    // Create initial branch
+    const initialBranch: Branch = {
       id: generateId(),
-      groupId: newGroup.id,
+      conversationId: newConversation.id,
       messages: [],
       model: 'anthropic/claude-3.5-sonnet',
       createdAt: Date.now(),
@@ -81,53 +81,53 @@ export default function Home() {
       position: 0,
     };
 
-    await createConversation(initialConversation);
+    await createBranch(initialBranch);
 
-    newGroup.conversationIds = [initialConversation.id];
+    newConversation.branchIds = [initialBranch.id];
 
-    setActiveGroup(newGroup);
-    setActiveConversations([initialConversation]);
-    await loadGroups();
+    setActiveConversation(newConversation);
+    setActiveBranches([initialBranch]);
+    await loadConversations();
   };
 
-  const handleDeleteGroup = async (groupId: string) => {
-    await deleteGroup(groupId);
+  const handleDeleteConversation = async (conversationId: string) => {
+    await deleteConversation(conversationId);
 
-    if (activeGroup?.id === groupId) {
-      setActiveGroup(null);
-      setActiveConversations([]);
+    if (activeConversation?.id === conversationId) {
+      setActiveConversation(null);
+      setActiveBranches([]);
     }
 
-    await loadGroups();
+    await loadConversations();
   };
 
-  const handleAddConversation = async () => {
-    if (!activeGroup) return;
+  const handleAddBranch = async () => {
+    if (!activeConversation) return;
 
-    const newConversation: Conversation = {
+    const newBranch: Branch = {
       id: generateId(),
-      groupId: activeGroup.id,
+      conversationId: activeConversation.id,
       messages: [],
       model: 'anthropic/claude-3.5-sonnet',
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      position: activeConversations.length,
+      position: activeBranches.length,
     };
 
-    await createConversation(newConversation);
+    await createBranch(newBranch);
 
-    const updatedConversations = [...activeConversations, newConversation];
-    const updatedGroup = {
-      ...activeGroup,
-      conversationIds: [...activeGroup.conversationIds, newConversation.id],
+    const updatedBranches = [...activeBranches, newBranch];
+    const updatedConversation = {
+      ...activeConversation,
+      branchIds: [...activeConversation.branchIds, newBranch.id],
       updatedAt: Date.now(),
     };
 
-    await updateGroup(activeGroup.id, updatedGroup);
+    await updateConversation(activeConversation.id, updatedConversation);
 
-    setActiveConversations(updatedConversations);
-    setActiveGroup(updatedGroup);
-    await loadGroups();
+    setActiveBranches(updatedBranches);
+    setActiveConversation(updatedConversation);
+    await loadConversations();
   };
 
   // Keyboard shortcuts
@@ -136,13 +136,13 @@ export default function Home() {
       {
         key: 't',
         metaKey: true,
-        description: 'New group',
-        action: handleCreateNewGroup,
+        description: 'New conversation',
+        action: handleCreateNewConversation,
       },
       {
         key: 'n',
         metaKey: true,
-        description: 'New conversation',
+        description: 'New branch',
         action: () => {
           // This will be handled by the GroupView component
           // We could emit an event or use a ref here
@@ -195,20 +195,20 @@ export default function Home() {
 
         <div className="border-b border-zinc-800">
           <button
-            onClick={handleCreateNewGroup}
+            onClick={handleCreateNewConversation}
             className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors"
           >
             <Plus className="w-4 h-4" />
-            NEW GROUP
+            NEW CONVERSATION
           </button>
         </div>
 
         <div className="flex-1 overflow-hidden">
           <GroupsList
-            groups={groups}
-            activeGroupId={activeGroup?.id}
-            onSelectGroup={selectGroup}
-            onDeleteGroup={handleDeleteGroup}
+            groups={conversations}
+            activeGroupId={activeConversation?.id}
+            onSelectGroup={selectConversation}
+            onDeleteGroup={handleDeleteConversation}
           />
         </div>
       </div>
@@ -234,20 +234,20 @@ export default function Home() {
             </button>
           )}
           <div className="flex-1 py-3">
-            {activeGroup && (
+            {activeConversation && (
               <div>
                 <h2 className="text-sm font-medium text-white font-mono">
-                  {activeGroup.name || 'UNTITLED GROUP'}
+                  {activeConversation.name || 'UNTITLED CONVERSATION'}
                 </h2>
                 <p className="text-xs text-zinc-600 font-mono">
-                  {activeConversations.length} CONVERSATION{activeConversations.length !== 1 ? 'S' : ''}
+                  {activeBranches.length} BRANCH{activeBranches.length !== 1 ? 'ES' : ''}
                 </p>
               </div>
             )}
           </div>
-          {activeGroup && activeConversations.length > 0 && (
+          {activeConversation && activeBranches.length > 0 && (
             <button
-              onClick={handleAddConversation}
+              onClick={handleAddBranch}
               className="px-3 md:px-4 h-full hover:bg-zinc-900 border-l border-zinc-800 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -259,26 +259,26 @@ export default function Home() {
 
         {/* Group View */}
         <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
-          {activeGroup && activeConversations.length > 0 ? (
+          {activeConversation && activeBranches.length > 0 ? (
             <GroupView
-              group={activeGroup}
-              conversations={activeConversations}
-              onGroupUpdate={(updatedGroup, updatedConversations) => {
-                setActiveGroup(updatedGroup);
-                setActiveConversations(updatedConversations);
+              group={activeConversation}
+              conversations={activeBranches}
+              onGroupUpdate={(updatedConversation, updatedBranches) => {
+                setActiveConversation(updatedConversation);
+                setActiveBranches(updatedBranches);
               }}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full bg-black">
               <Plus className="w-16 h-16 mb-4 text-zinc-700" />
-              <h3 className="text-base font-bold mb-2 text-white font-mono">NO ACTIVE GROUP</h3>
-              <p className="text-sm mb-6 text-zinc-500 font-mono">CREATE A NEW GROUP TO START CHATTING</p>
+              <h3 className="text-base font-bold mb-2 text-white font-mono">NO ACTIVE CONVERSATION</h3>
+              <p className="text-sm mb-6 text-zinc-500 font-mono">CREATE A NEW CONVERSATION TO START CHATTING</p>
               <button
-                onClick={handleCreateNewGroup}
+                onClick={handleCreateNewConversation}
                 className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                CREATE NEW GROUP
+                CREATE NEW CONVERSATION
               </button>
             </div>
           )}
