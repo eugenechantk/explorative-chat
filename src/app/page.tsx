@@ -202,7 +202,7 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-black">
+      <div className="flex-1 h-full flex flex-col overflow-hidden bg-black">
         {/* Top Bar */}
         <div className="flex items-center gap-4 px-3 py-3 bg-zinc-950 border-b border-zinc-800">
           {!sidebarOpen && (
