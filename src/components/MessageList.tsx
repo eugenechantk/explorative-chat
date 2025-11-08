@@ -67,6 +67,7 @@ export function MessageList({
           key={message.id}
           className="flex gap-3 px-3 py-3"
           onMouseUp={() => handleTextSelection(message)}
+          onTouchEnd={() => handleTextSelection(message)}
         >
           <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
             {message.role === 'assistant' ? (

@@ -33,7 +33,7 @@ export function BranchButton({
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
-        if (rect) {
+        if (rect && rect.width > 0 && rect.height > 0) {
           setPosition({
             x: rect.left + rect.width / 2,
             y: rect.top + window.scrollY,
@@ -42,7 +42,11 @@ export function BranchButton({
       }
     };
 
-    // Update position immediately
+    // Update position with a small delay for iOS Safari
+    // iOS Safari needs time to finalize the selection
+    const timer = setTimeout(updatePosition, 50);
+
+    // Also update immediately in case it's ready
     updatePosition();
 
     // Update position on scroll/resize
@@ -50,6 +54,7 @@ export function BranchButton({
     window.addEventListener('resize', updatePosition);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);
     };
@@ -71,9 +76,9 @@ export function BranchButton({
     }
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking/touching outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
@@ -81,10 +86,12 @@ export function BranchButton({
 
     if (showDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showDropdown]);
 

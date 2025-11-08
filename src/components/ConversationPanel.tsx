@@ -52,7 +52,7 @@ export function ConversationPanel({
     }
   }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear branch selection when clicking elsewhere or selection changes
+  // Clear branch selection when clicking/touching elsewhere or selection changes
   useEffect(() => {
     const handleSelectionChange = () => {
       const selection = window.getSelection();
@@ -64,10 +64,12 @@ export function ConversationPanel({
 
     document.addEventListener('selectionchange', handleSelectionChange);
     document.addEventListener('mousedown', handleSelectionChange);
+    document.addEventListener('touchstart', handleSelectionChange);
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       document.removeEventListener('mousedown', handleSelectionChange);
+      document.removeEventListener('touchstart', handleSelectionChange);
     };
   }, [branchSelection]);
 
