@@ -87,7 +87,7 @@ export function ConversationPanel({
 
   // Track text selection for branching
   useEffect(() => {
-    addDebugLog('selectionchange listener attached');
+    console.log('[Selection] Attaching selectionchange listener');
 
     const handleSelectionChange = () => {
       // Use requestAnimationFrame to ensure selection is stable
@@ -146,18 +146,11 @@ export function ConversationPanel({
                     // Store selection in ref (no state update = no re-render = iOS selection preserved!)
                     branchSelectionRef.current = { message, text: selectedText, position };
 
-                    // Update debug state in one batched update
-                    addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
-                    setDebugSelectedText(selectedText);
-                    setDebugMessageId(messageId);
-                    const computedStyle = window.getComputedStyle(messageElement!);
-                    setDebugCssInfo({
-                      userSelect: computedStyle.userSelect || 'not set',
-                      webkitUserSelect: computedStyle.getPropertyValue('-webkit-user-select') || 'not set',
-                      touchCallout: computedStyle.getPropertyValue('-webkit-touch-callout') || 'not set',
-                    });
+                    // Log debug info via console ONLY - NO STATE UPDATES!
+                    console.log(`[Selection] Selected text: "${selectedText.substring(0, 30)}"`);
+                    console.log(`[Selection] Message ID: ${messageId}`);
 
-                    // Show button via ref (no state update!)
+                    // Show button via ref - THIS IS THE ONLY ACTION!
                     branchButtonRef.current?.show();
                   }, 800); // Wait 800ms for iOS to settle
                 } else {
@@ -175,12 +168,9 @@ export function ConversationPanel({
           // But only if rangeCount is actually 0 (selection truly gone)
           if (selection && selection.rangeCount === 0) {
             console.log('[Selection] Clearing branch selection (rangeCount = 0)');
-            addDebugLog('Clearing branch selection');
+            // NO STATE UPDATES - just clear ref and hide button
             branchSelectionRef.current = null;
             branchButtonRef.current?.hide();
-            setDebugMessageId(null);
-            setDebugCssInfo(null);
-            setDebugSelectedText(null);
           } else {
             console.log(`[Selection] NOT clearing - rangeCount: ${selection?.rangeCount || 0}`);
           }

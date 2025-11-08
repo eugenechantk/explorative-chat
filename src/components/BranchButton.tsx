@@ -39,26 +39,31 @@ export const BranchButton = forwardRef<BranchButtonHandle, BranchButtonProps>(
     },
     ref
   ) => {
-    const [visible, setVisible] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Expose show/hide methods to parent via ref
+    // Expose show/hide methods to parent via ref - NO STATE UPDATES!
     useImperativeHandle(ref, () => ({
       show: () => {
-        onDebugLog?.(`BranchButton: Showing at (${selectionRef.current?.position.x}, ${selectionRef.current?.position.y})`);
-        setVisible(true);
+        console.log(`[BranchButton] Showing at (${selectionRef.current?.position.x}, ${selectionRef.current?.position.y})`);
 
-        // Update position via direct DOM manipulation to avoid re-render
+        // Update position and visibility via direct DOM manipulation - NO STATE UPDATES!
         if (containerRef.current && selectionRef.current) {
           containerRef.current.style.left = `${selectionRef.current.position.x}px`;
           containerRef.current.style.top = `${selectionRef.current.position.y}px`;
+          containerRef.current.style.opacity = '1';
+          containerRef.current.style.pointerEvents = 'auto';
         }
       },
       hide: () => {
-        onDebugLog?.('BranchButton: Hiding');
-        setVisible(false);
+        console.log('[BranchButton] Hiding');
+
+        // Hide via direct DOM manipulation - NO STATE UPDATES!
+        if (containerRef.current) {
+          containerRef.current.style.opacity = '0';
+          containerRef.current.style.pointerEvents = 'none';
+        }
         setShowDropdown(false);
       },
     }));
@@ -108,18 +113,17 @@ export const BranchButton = forwardRef<BranchButtonHandle, BranchButtonProps>(
     const otherBranches = availableConversations.filter((c) => c.id !== currentConversationId);
     const hasOtherBranches = otherBranches.length > 0;
 
-    if (!visible) {
-      return null;
-    }
-
+    // Always render, control visibility via opacity (no conditional rendering = no re-render)
     return (
       <div
         ref={containerRef}
         data-branch-button
-        className="absolute z-50 transform -translate-x-1/2 -translate-y-full -mt-2"
+        className="absolute z-50 transform -translate-x-1/2 -translate-y-full -mt-2 transition-opacity duration-200"
         style={{
           left: '0px', // Will be set via ref in show()
           top: '0px', // Will be set via ref in show()
+          opacity: '0', // Start hidden
+          pointerEvents: 'none', // Start non-interactive
         }}
       >
       <div className="flex items-center gap-0 shadow-2xl animate-in fade-in zoom-in duration-200">
