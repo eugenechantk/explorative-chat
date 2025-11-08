@@ -170,7 +170,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
 
   // Multiple conversations - use resizable panels
   return (
-    <div className="h-full flex overflow-x-auto overflow-y-hidden" style={{ minWidth: `${conversations.length * 600}px` }}>
+    <div className="h-full flex" style={{ minWidth: `${conversations.length * 600}px` }}>
       <PanelGroup direction="horizontal">
         {conversations.map((conversation, index) => (
           <div key={conversation.id}>
