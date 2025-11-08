@@ -212,7 +212,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-proximity lg:snap-none"
+      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory lg:snap-none"
     >
       <div className="h-full flex">
         {branches.map((branch) => (
