@@ -14,31 +14,47 @@ interface BranchButtonProps {
   onBranchToConversation?: (branchId: string) => void;
   availableConversations?: Branch[];
   currentConversationId?: string;
+  onDebugLog?: (message: string) => void;
 }
 
 export function BranchButton({
   onBranch,
   onBranchToConversation,
   availableConversations = [],
-  currentConversationId
+  currentConversationId,
+  onDebugLog,
 }: BranchButtonProps) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    onDebugLog?.('BranchButton: Component mounted');
+
     const updatePosition = () => {
       const selection = window.getSelection();
+      onDebugLog?.(`BranchButton: selection exists: ${!!selection}`);
+      onDebugLog?.(`BranchButton: rangeCount: ${selection?.rangeCount || 0}`);
+      onDebugLog?.(`BranchButton: text: "${selection?.toString().trim().substring(0, 20) || 'none'}"`);
+
       if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
+        onDebugLog?.(`BranchButton: rect - width: ${rect.width}, height: ${rect.height}, top: ${rect.top}, left: ${rect.left}`);
+
         if (rect && rect.width > 0 && rect.height > 0) {
-          setPosition({
+          const pos = {
             x: rect.left + rect.width / 2,
             y: rect.top + window.scrollY,
-          });
+          };
+          onDebugLog?.(`BranchButton: ✓ Setting position (${pos.x}, ${pos.y})`);
+          setPosition(pos);
+        } else {
+          onDebugLog?.('BranchButton: ERROR - rect has zero dimensions');
         }
+      } else {
+        onDebugLog?.('BranchButton: ERROR - selection invalid or empty');
       }
     };
 
@@ -54,11 +70,12 @@ export function BranchButton({
     window.addEventListener('resize', updatePosition);
 
     return () => {
+      onDebugLog?.('BranchButton: Component unmounting');
       clearTimeout(timer);
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);
     };
-  }, []);
+  }, [onDebugLog]);
 
   const handleBranch = () => {
     onBranch();

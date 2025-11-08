@@ -371,6 +371,7 @@ export function ConversationPanel({
           onBranchToConversation={handleBranchToExistingBranch}
           availableConversations={availableConversations}
           currentConversationId={conversation.id}
+          onDebugLog={addDebugLog}
         />
       )}
 
