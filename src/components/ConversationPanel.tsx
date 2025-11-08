@@ -5,6 +5,7 @@ import type { Branch, Message, BranchContext } from '@/lib/types';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { BranchButton } from './BranchButton';
+import { SelectionDebug } from './SelectionDebug';
 import { OpenRouterClient, POPULAR_MODELS } from '@/lib/openrouter/client';
 import { createMessage, updateBranch, generateId, getConversation, updateConversation } from '@/lib/storage/operations';
 import { generateConversationTitle } from '@/lib/openrouter/generateTitle';
@@ -38,6 +39,30 @@ export function ConversationPanel({
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevBranchIdRef = useRef(conversation.id);
 
+  // Debug state for iOS Safari debugging
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [debugSelectedText, setDebugSelectedText] = useState<string | null>(null);
+  const [debugMessageId, setDebugMessageId] = useState<string | null>(null);
+  const [debugCssInfo, setDebugCssInfo] = useState<{
+    userSelect: string;
+    webkitUserSelect: string;
+    touchCallout: string;
+  } | null>(null);
+
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs((prev) => [...prev.slice(-20), `[${timestamp}] ${message}`]);
+  };
+
+  // Log initial environment info
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    addDebugLog(`Platform: ${navigator.platform}`);
+    addDebugLog(`iOS: ${isIOS}, Safari: ${isSafari}`);
+    addDebugLog(`User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+  }, []);
+
   // Sync messages from branch prop changes
   useEffect(() => {
     // If branch ID changed, always sync (switching to different branch)
@@ -54,34 +79,67 @@ export function ConversationPanel({
 
   // Track text selection for branching
   useEffect(() => {
+    addDebugLog('selectionchange listener attached');
+
     const handleSelectionChange = () => {
       // Use requestAnimationFrame to ensure selection is stable
       requestAnimationFrame(() => {
         const selection = window.getSelection();
         const selectedText = selection?.toString().trim();
 
+        addDebugLog(`selectionchange fired. Text: "${selectedText?.substring(0, 20) || 'none'}"`);
+        setDebugSelectedText(selectedText || null);
+
         if (selectedText) {
           // Find which message contains the selection
           const anchorNode = selection?.anchorNode;
+          addDebugLog(`anchorNode: ${anchorNode?.nodeName || 'null'}`);
+
           if (anchorNode) {
             let messageElement: HTMLElement | null = anchorNode.parentElement;
 
             // Walk up the DOM to find the message container
+            let depth = 0;
             while (messageElement && !messageElement.hasAttribute('data-message-id')) {
               messageElement = messageElement.parentElement;
+              depth++;
+              if (depth > 20) {
+                addDebugLog('ERROR: Exceeded max depth finding message container');
+                break;
+              }
             }
 
             if (messageElement) {
               const messageId = messageElement.getAttribute('data-message-id');
+              addDebugLog(`Found message: ${messageId?.substring(0, 8)}`);
+              setDebugMessageId(messageId);
+
+              // Get computed CSS for debugging
+              const computedStyle = window.getComputedStyle(messageElement);
+              setDebugCssInfo({
+                userSelect: computedStyle.userSelect || 'not set',
+                webkitUserSelect: computedStyle.getPropertyValue('-webkit-user-select') || 'not set',
+                touchCallout: computedStyle.getPropertyValue('-webkit-touch-callout') || 'not set',
+              });
+
               const message = messages.find(m => m.id === messageId);
               if (message) {
+                addDebugLog('✓ Setting branch selection');
                 setBranchSelection({ message, text: selectedText });
+              } else {
+                addDebugLog('ERROR: Message not found in messages array');
               }
+            } else {
+              addDebugLog('ERROR: Could not find message container');
+              setDebugMessageId(null);
             }
           }
         } else if (!selectedText && branchSelection) {
           // Clear selection when text is deselected
+          addDebugLog('Clearing branch selection');
           setBranchSelection(null);
+          setDebugMessageId(null);
+          setDebugCssInfo(null);
         }
       });
     };
@@ -315,6 +373,15 @@ export function ConversationPanel({
           currentConversationId={conversation.id}
         />
       )}
+
+      {/* Debug Panel for iOS Safari */}
+      <SelectionDebug
+        logs={debugLogs}
+        selectedText={debugSelectedText}
+        hasSelection={!!branchSelection}
+        messageId={debugMessageId}
+        cssInfo={debugCssInfo}
+      />
     </div>
   );
 }
