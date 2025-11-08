@@ -70,19 +70,28 @@ export default function Home() {
 
   const refreshConversationTitle = async (conversationId: string) => {
     try {
+      console.log('[REFRESH] Refreshing conversation title for:', conversationId);
       const updatedConversation = await getConversation(conversationId);
+      console.log('[REFRESH] Got updated conversation:', updatedConversation);
+
       if (updatedConversation) {
         // Update the conversations list
-        setConversations(prev =>
-          prev.map(c => c.id === conversationId ? updatedConversation : c)
-        );
+        setConversations(prev => {
+          const updated = prev.map(c => c.id === conversationId ? updatedConversation : c);
+          console.log('[REFRESH] Updated conversations list');
+          return updated;
+        });
+
         // Update active conversation if it's the one that changed
+        // Do NOT update activeBranches - they should remain unchanged
         if (activeConversation?.id === conversationId) {
+          console.log('[REFRESH] Updating active conversation metadata only');
           setActiveConversation(updatedConversation);
+          console.log('[REFRESH] Active branches count:', activeBranches.length);
         }
       }
     } catch (error) {
-      console.error('Error refreshing conversation title:', error);
+      console.error('[REFRESH] Error refreshing conversation title:', error);
     }
   };
 
@@ -153,9 +162,11 @@ export default function Home() {
       setActiveBranches([initialBranch]);
       console.log('[CREATE] Step 4: SUCCESS - State set');
 
-      console.log('[CREATE] Step 5: Reloading conversations...');
-      await loadConversations();
-      console.log('[CREATE] Step 5: SUCCESS - Conversations reloaded');
+      console.log('[CREATE] Step 5: Reloading conversations list...');
+      // Reload conversations list but preserve the active conversation we just set
+      const allConversations = await getAllConversations();
+      setConversations(allConversations);
+      console.log('[CREATE] Step 5: SUCCESS - Conversations list reloaded');
 
       console.log('[CREATE] COMPLETE - All steps succeeded');
       setIsCreating(false);
