@@ -6,7 +6,8 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { BranchButton } from './BranchButton';
 import { OpenRouterClient, POPULAR_MODELS } from '@/lib/openrouter/client';
-import { createMessage, updateBranch, generateId } from '@/lib/storage/operations';
+import { createMessage, updateBranch, generateId, getConversation, updateConversation } from '@/lib/storage/operations';
+import { generateConversationTitle } from '@/lib/openrouter/generateTitle';
 import { X, Settings, Plus } from 'lucide-react';
 
 interface ConversationPanelProps {
@@ -131,6 +132,19 @@ export function ConversationPanel({
       // Save assistant message to storage
       await createMessage(assistantMessage);
       await updateBranch(conversation.id, { messages: finalMessages });
+
+      // Generate conversation title if this is the first message exchange and first branch
+      if (finalMessages.length === 2 && conversation.position === 0) {
+        const conversationData = await getConversation(conversation.conversationId);
+        if (conversationData && !conversationData.name) {
+          // Generate title in the background (don't await)
+          generateConversationTitle(userMessage.content, assistantMessage.content).then((title) => {
+            updateConversation(conversation.conversationId, { name: title }).catch((err) => {
+              console.error('Error updating conversation title:', err);
+            });
+          });
+        }
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request aborted');
@@ -236,18 +250,17 @@ export function ConversationPanel({
       )}
 
       {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <MessageList
-          messages={messages}
-          isStreaming={isStreaming}
-          streamingContent={streamingContent}
-          onMessageSelect={handleMessageSelect}
-        />
-      </div>
+      <MessageList
+        messages={messages}
+        isStreaming={isStreaming}
+        streamingContent={streamingContent}
+        onMessageSelect={handleMessageSelect}
+      />
 
       {/* Input */}
       <div className="flex-shrink-0">
         <MessageInput
+          key={conversation.id}
           onSend={handleSendMessage}
           disabled={isStreaming}
           mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}

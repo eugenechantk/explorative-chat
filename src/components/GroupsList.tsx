@@ -51,11 +51,6 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-3 border-b border-zinc-800">
-        <h2 className="text-sm font-semibold text-white font-mono">SAVED CONVERSATIONS</h2>
-        <p className="text-xs text-zinc-600 mt-0.5 font-mono">{groups.length} CONVERSATION{groups.length !== 1 ? 'S' : ''}</p>
-      </div>
-
       <div className="flex-1 overflow-y-auto">
         {groups.map((conversation) => (
           <div
@@ -72,7 +67,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
                     <FolderOpen className="w-3 h-3 text-zinc-400" />
                   </div>
                   <h3 className="text-sm truncate text-white font-mono leading-snug">
-                    {conversation.name || `CONVERSATION ${conversation.branchIds.length} BRANCHES`}
+                    {conversation.name || `CONVERSATION ${(conversation.branchIds || []).length} BRANCHES`}
                   </h3>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-zinc-600 font-mono">
@@ -80,7 +75,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
                     <Calendar className="w-3 h-3" />
                     {formatDate(conversation.updatedAt).toUpperCase()}
                   </span>
-                  <span>{conversation.branchIds.length} BRANCH{conversation.branchIds.length !== 1 ? 'ES' : ''}</span>
+                  <span>{(conversation.branchIds || []).length} BRANCH{(conversation.branchIds || []).length !== 1 ? 'ES' : ''}</span>
                 </div>
                 {conversation.tags && conversation.tags.length > 0 && (
                   <div className="flex gap-1 mt-2">

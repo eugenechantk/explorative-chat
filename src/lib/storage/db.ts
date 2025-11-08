@@ -20,6 +20,16 @@ class ExplorativeChatDB extends Dexie {
       branches: 'id, conversationId, createdAt, updatedAt, position',
       conversations: 'id, createdAt, updatedAt',
       messages: 'id, branchId, timestamp',
+    }).upgrade(async (trans) => {
+      // Ensure all conversations have branchIds array
+      const conversations = await trans.table('conversations').toArray();
+      for (const conversation of conversations) {
+        if (!conversation.branchIds) {
+          await trans.table('conversations').update(conversation.id, {
+            branchIds: [],
+          });
+        }
+      }
     });
   }
 }

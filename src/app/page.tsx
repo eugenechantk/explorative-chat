@@ -186,7 +186,7 @@ export default function Home() {
     const updatedBranches = [...activeBranches, newBranch];
     const updatedConversation = {
       ...activeConversation,
-      branchIds: [...activeConversation.branchIds, newBranch.id],
+      branchIds: [...(activeConversation.branchIds || []), newBranch.id],
       updatedAt: Date.now(),
     };
 

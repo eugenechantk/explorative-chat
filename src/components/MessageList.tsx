@@ -87,7 +87,7 @@ export function MessageList({
               </div>
             )}
 
-            <div className="text-white text-sm leading-6 whitespace-pre-wrap break-words">
+            <div className="text-white text-base leading-6 whitespace-pre-wrap break-words">
               {message.content}
             </div>
 
@@ -107,7 +107,7 @@ export function MessageList({
             <Bot className="w-3.5 h-3.5 text-zinc-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-zinc-300 text-sm leading-6 whitespace-pre-wrap break-words">
+            <div className="text-zinc-300 text-base leading-6 whitespace-pre-wrap break-words">
               {streamingContent}
               <span className="inline-block w-1.5 h-4 ml-1 bg-zinc-500 animate-pulse" />
             </div>

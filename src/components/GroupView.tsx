@@ -84,7 +84,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
     const updatedBranches = [...branches, newBranch];
     const updatedConversation = {
       ...group,
-      branchIds: [...group.branchIds, newBranch.id],
+      branchIds: [...(group.branchIds || []), newBranch.id],
       updatedAt: Date.now(),
     };
 
@@ -152,7 +152,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
     const updatedBranches = [...branches, newBranch];
     const updatedConversation = {
       ...group,
-      branchIds: [...group.branchIds, newBranch.id],
+      branchIds: [...(group.branchIds || []), newBranch.id],
       updatedAt: Date.now(),
     };
 
@@ -221,7 +221,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
                 defaultSize={100 / branches.length}
                 minSize={20}
                 onClick={() => setActiveBranchId(branch.id)}
-                className="snap-center md:snap-align-none w-screen md:w-[650px] flex-shrink-0"
+                className="snap-center md:snap-align-none w-screen md:w-[720px] flex-shrink-0"
               >
                 <div
                   ref={(el) => {
