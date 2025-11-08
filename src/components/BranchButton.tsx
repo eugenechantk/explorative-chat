@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { GitBranch, ChevronDown } from 'lucide-react';
 
 interface Branch {
@@ -15,24 +15,53 @@ interface BranchButtonProps {
   availableConversations?: Branch[];
   currentConversationId?: string;
   onDebugLog?: (message: string) => void;
-  initialPosition: { x: number; y: number };
+  selectionRef: React.MutableRefObject<{
+    message: any;
+    text: string;
+    position: { x: number; y: number };
+  } | null>;
 }
 
-export function BranchButton({
-  onBranch,
-  onBranchToConversation,
-  availableConversations = [],
-  currentConversationId,
-  onDebugLog,
-  initialPosition,
-}: BranchButtonProps) {
-  const [position, setPosition] = useState<{ x: number; y: number }>(initialPosition);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+export interface BranchButtonHandle {
+  show: () => void;
+  hide: () => void;
+}
 
-  useEffect(() => {
-    onDebugLog?.(`BranchButton: Component mounted with position (${initialPosition.x}, ${initialPosition.y})`);
-  }, [onDebugLog, initialPosition.x, initialPosition.y]);
+export const BranchButton = forwardRef<BranchButtonHandle, BranchButtonProps>(
+  (
+    {
+      onBranch,
+      onBranchToConversation,
+      availableConversations = [],
+      currentConversationId,
+      onDebugLog,
+      selectionRef,
+    },
+    ref
+  ) => {
+    const [visible, setVisible] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Expose show/hide methods to parent via ref
+    useImperativeHandle(ref, () => ({
+      show: () => {
+        onDebugLog?.(`BranchButton: Showing at (${selectionRef.current?.position.x}, ${selectionRef.current?.position.y})`);
+        setVisible(true);
+
+        // Update position via direct DOM manipulation to avoid re-render
+        if (containerRef.current && selectionRef.current) {
+          containerRef.current.style.left = `${selectionRef.current.position.x}px`;
+          containerRef.current.style.top = `${selectionRef.current.position.y}px`;
+        }
+      },
+      hide: () => {
+        onDebugLog?.('BranchButton: Hiding');
+        setVisible(false);
+        setShowDropdown(false);
+      },
+    }));
 
   const handleBranch = () => {
     onBranch();
@@ -76,19 +105,23 @@ export function BranchButton({
     };
   }, [showDropdown]);
 
-  const otherBranches = availableConversations.filter(c => c.id !== currentConversationId);
-  const hasOtherBranches = otherBranches.length > 0;
+    const otherBranches = availableConversations.filter((c) => c.id !== currentConversationId);
+    const hasOtherBranches = otherBranches.length > 0;
 
-  return (
-    <div
-      ref={dropdownRef}
-      data-branch-button
-      className="absolute z-50 transform -translate-x-1/2 -translate-y-full -mt-2"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-      }}
-    >
+    if (!visible) {
+      return null;
+    }
+
+    return (
+      <div
+        ref={containerRef}
+        data-branch-button
+        className="absolute z-50 transform -translate-x-1/2 -translate-y-full -mt-2"
+        style={{
+          left: '0px', // Will be set via ref in show()
+          top: '0px', // Will be set via ref in show()
+        }}
+      >
       <div className="flex items-center gap-0 shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* Main Branch Button */}
         <button
@@ -141,4 +174,7 @@ export function BranchButton({
       </div>
     </div>
   );
-}
+  }
+);
+
+BranchButton.displayName = 'BranchButton';

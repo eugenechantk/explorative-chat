@@ -35,11 +35,14 @@ export function ConversationPanel({
   const [streamingContent, setStreamingContent] = useState('');
   const [selectedModel, setSelectedModel] = useState(conversation.model || POPULAR_MODELS[0].id);
   const [showModelSelector, setShowModelSelector] = useState(false);
-  const [branchSelection, setBranchSelection] = useState<{
+
+  // Use ref instead of state to avoid re-renders that clear iOS selection
+  const branchSelectionRef = useRef<{
     message: Message;
     text: string;
     position: { x: number; y: number };
   } | null>(null);
+  const branchButtonRef = useRef<{ show: () => void; hide: () => void } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevBranchIdRef = useRef(conversation.id);
   const selectionTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -81,15 +84,6 @@ export function ConversationPanel({
       setMessages(conversation.messages);
     }
   }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Log when branchSelection changes
-  useEffect(() => {
-    if (branchSelection) {
-      addDebugLog(`🔔 branchSelection state SET - text: "${branchSelection.text.substring(0, 20)}"`);
-    } else {
-      addDebugLog('🔔 branchSelection state CLEARED');
-    }
-  }, [branchSelection]);
 
   // Track text selection for branching
   useEffect(() => {
@@ -144,15 +138,18 @@ export function ConversationPanel({
                     clearTimeout(selectionTimerRef.current);
                   }
 
-                  // Delay setting branchSelection to allow iOS to show native UI
+                  // Delay showing button to allow iOS to show native UI first
                   console.log(`[Selection] Delaying button for 800ms...`);
                   selectionTimerRef.current = setTimeout(() => {
                     console.log(`[Selection] ✓ Showing button at (${position.x}, ${position.y})`);
+
+                    // Store selection in ref (no state update = no re-render = iOS selection preserved!)
+                    branchSelectionRef.current = { message, text: selectedText, position };
+
+                    // Update debug state in one batched update
                     addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
                     setDebugSelectedText(selectedText);
                     setDebugMessageId(messageId);
-
-                    // Get computed CSS for debugging
                     const computedStyle = window.getComputedStyle(messageElement!);
                     setDebugCssInfo({
                       userSelect: computedStyle.userSelect || 'not set',
@@ -160,7 +157,8 @@ export function ConversationPanel({
                       touchCallout: computedStyle.getPropertyValue('-webkit-touch-callout') || 'not set',
                     });
 
-                    setBranchSelection({ message, text: selectedText, position });
+                    // Show button via ref (no state update!)
+                    branchButtonRef.current?.show();
                   }, 800); // Wait 800ms for iOS to settle
                 } else {
                   console.log('[Selection] ERROR: rect has zero dimensions');
@@ -172,13 +170,14 @@ export function ConversationPanel({
               console.log('[Selection] ERROR: Could not find message container');
             }
           }
-        } else if (!selectedText && branchSelection) {
+        } else if (!selectedText && branchSelectionRef.current) {
           // Clear selection when text is deselected
           // But only if rangeCount is actually 0 (selection truly gone)
           if (selection && selection.rangeCount === 0) {
             console.log('[Selection] Clearing branch selection (rangeCount = 0)');
             addDebugLog('Clearing branch selection');
-            setBranchSelection(null);
+            branchSelectionRef.current = null;
+            branchButtonRef.current?.hide();
             setDebugMessageId(null);
             setDebugCssInfo(null);
             setDebugSelectedText(null);
@@ -192,11 +191,12 @@ export function ConversationPanel({
     const handleMouseDown = (e: MouseEvent) => {
       // Only clear if clicking outside the branch button
       const target = e.target as HTMLElement;
-      if (!target.closest('[data-branch-button]') && branchSelection) {
+      if (!target.closest('[data-branch-button]') && branchSelectionRef.current) {
         const selection = window.getSelection();
         const selectedText = selection?.toString().trim();
         if (!selectedText) {
-          setBranchSelection(null);
+          branchSelectionRef.current = null;
+          branchButtonRef.current?.hide();
         }
       }
     };
@@ -211,7 +211,7 @@ export function ConversationPanel({
         clearTimeout(selectionTimerRef.current);
       }
     };
-  }, [branchSelection, messages]);
+  }, [messages, addDebugLog]);
 
   const handleSendMessage = async (content: string, mentionedTexts?: string[]) => {
     // Combine mentioned texts and user content into a single prompt
@@ -314,21 +314,23 @@ export function ConversationPanel({
   };
 
   const handleBranch = () => {
-    if (onBranch && branchSelection) {
+    if (onBranch && branchSelectionRef.current) {
       const branchContext: BranchContext = {
         sourceBranchId: conversation.id,
-        sourceMessageId: branchSelection.message.id,
-        selectedText: branchSelection.text,
+        sourceMessageId: branchSelectionRef.current.message.id,
+        selectedText: branchSelectionRef.current.text,
       };
       onBranch(branchContext);
-      setBranchSelection(null);
+      branchSelectionRef.current = null;
+      branchButtonRef.current?.hide();
     }
   };
 
   const handleBranchToExistingBranch = (branchId: string) => {
-    if (onBranchToConversation && branchSelection) {
-      onBranchToConversation(branchId, branchSelection.text);
-      setBranchSelection(null);
+    if (onBranchToConversation && branchSelectionRef.current) {
+      onBranchToConversation(branchId, branchSelectionRef.current.text);
+      branchSelectionRef.current = null;
+      branchButtonRef.current?.hide();
     }
   };
 
@@ -412,26 +414,25 @@ export function ConversationPanel({
         />
       </div>
 
-      {/* Branch Button */}
-      {branchSelection && (
-        <BranchButton
-          onBranch={handleBranch}
-          onBranchToConversation={handleBranchToExistingBranch}
-          availableConversations={availableConversations}
-          currentConversationId={conversation.id}
-          onDebugLog={addDebugLog}
-          initialPosition={branchSelection.position}
-        />
-      )}
+      {/* Branch Button - Always rendered, visibility controlled via ref */}
+      <BranchButton
+        ref={branchButtonRef}
+        onBranch={handleBranch}
+        onBranchToConversation={handleBranchToExistingBranch}
+        availableConversations={availableConversations}
+        currentConversationId={conversation.id}
+        onDebugLog={addDebugLog}
+        selectionRef={branchSelectionRef}
+      />
 
       {/* Debug Panel for iOS Safari */}
-      <SelectionDebug
+      {/* <SelectionDebug
         logs={debugLogs}
         selectedText={debugSelectedText}
-        hasSelection={!!branchSelection}
+        hasSelection={!!branchSelectionRef.current}
         messageId={debugMessageId}
         cssInfo={debugCssInfo}
-      />
+      /> */}
     </div>
   );
 }
