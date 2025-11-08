@@ -49,38 +49,38 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        className="bg-black border border-zinc-800 shadow-2xl p-3 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 pb-3 border-b border-zinc-800">
           <div className="flex items-center gap-2">
-            <Keyboard className="w-6 h-6 text-blue-600" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Keyboard Shortcuts</h2>
+            <Keyboard className="w-5 h-5 text-zinc-500" />
+            <h2 className="text-base font-bold text-white font-mono">KEYBOARD SHORTCUTS</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 text-zinc-500" />
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {shortcuts.map((section) => (
             <div key={section.category}>
-              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wide">
+              <h3 className="text-xs font-semibold text-zinc-600 mb-2 uppercase tracking-wide font-mono">
                 {section.category}
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {section.items.map((shortcut, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    className="flex items-center justify-between py-2 px-3 bg-zinc-950 border-b border-zinc-900"
                   >
-                    <span className="text-sm text-gray-900 dark:text-gray-100">{shortcut.description}</span>
-                    <kbd className="px-2 py-1 text-xs font-mono bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm">
+                    <span className="text-sm text-white font-mono">{shortcut.description}</span>
+                    <kbd className="px-2 py-1 text-xs font-mono bg-zinc-900 border border-zinc-700 text-zinc-300">
                       {shortcut.keys}
                     </kbd>
                   </div>
@@ -90,10 +90,9 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
           ))}
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 text-center">
-            Press <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">?</kbd> anytime to show this
-            help
+        <div className="mt-6 pt-3 border-t border-zinc-800">
+          <p className="text-xs text-zinc-500 text-center font-mono">
+            PRESS <kbd className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-700 text-zinc-400 font-mono">?</kbd> ANYTIME TO SHOW THIS HELP
           </p>
         </div>
       </div>

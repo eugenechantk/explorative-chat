@@ -1,20 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { Conversation, Message, BranchContext } from '@/lib/types';
+import type { Branch, Message, BranchContext } from '@/lib/types';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { BranchButton } from './BranchButton';
 import { OpenRouterClient, POPULAR_MODELS } from '@/lib/openrouter/client';
-import { createMessage, updateConversation, generateId } from '@/lib/storage/operations';
+import { createMessage, updateBranch, generateId, getConversation, updateConversation } from '@/lib/storage/operations';
+import { generateConversationTitle } from '@/lib/openrouter/generateTitle';
 import { X, Settings, Plus } from 'lucide-react';
 
 interface ConversationPanelProps {
-  conversation: Conversation;
+  conversation: Branch;
   onClose?: () => void;
   onBranch?: (branchContext: BranchContext) => void;
-  onBranchToConversation?: (conversationId: string, selectedText: string) => void;
-  availableConversations?: Conversation[];
+  onBranchToConversation?: (branchId: string, selectedText: string) => void;
+  availableConversations?: Branch[];
   isActive?: boolean;
 }
 
@@ -33,11 +34,21 @@ export function ConversationPanel({
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [branchSelection, setBranchSelection] = useState<{ message: Message; text: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prevBranchIdRef = useRef(conversation.id);
 
-  // Sync messages from conversation prop changes
+  // Sync messages from branch prop changes
   useEffect(() => {
-    setMessages(conversation.messages || []);
-  }, [conversation.id]); // Only update when conversation changes
+    // If branch ID changed, always sync (switching to different branch)
+    if (prevBranchIdRef.current !== conversation.id) {
+      setMessages(conversation.messages || []);
+      prevBranchIdRef.current = conversation.id;
+    }
+    // Otherwise, only update if prop has more messages (e.g., loaded from storage)
+    // Never overwrite with fewer messages to prevent data loss
+    else if (conversation.messages && conversation.messages.length > messages.length) {
+      setMessages(conversation.messages);
+    }
+  }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear branch selection when clicking elsewhere or selection changes
   useEffect(() => {
@@ -71,7 +82,7 @@ export function ConversationPanel({
     // Create user message
     const userMessage: Message = {
       id: generateId(),
-      conversationId: conversation.id,
+      branchId: conversation.id,
       role: 'user',
       content: fullContent,
       timestamp: Date.now(),
@@ -83,7 +94,7 @@ export function ConversationPanel({
     // Save user message to storage
     await createMessage(userMessage);
     // Clear mentionedTexts after sending
-    await updateConversation(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
+    await updateBranch(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
 
     // Start streaming assistant response
     setIsStreaming(true);
@@ -109,7 +120,7 @@ export function ConversationPanel({
       // Create assistant message
       const assistantMessage: Message = {
         id: generateId(),
-        conversationId: conversation.id,
+        branchId: conversation.id,
         role: 'assistant',
         content: fullResponse,
         timestamp: Date.now(),
@@ -120,7 +131,20 @@ export function ConversationPanel({
 
       // Save assistant message to storage
       await createMessage(assistantMessage);
-      await updateConversation(conversation.id, { messages: finalMessages });
+      await updateBranch(conversation.id, { messages: finalMessages });
+
+      // Generate conversation title if this is the first message exchange and first branch
+      if (finalMessages.length === 2 && conversation.position === 0) {
+        const conversationData = await getConversation(conversation.conversationId);
+        if (conversationData && !conversationData.name) {
+          // Generate title in the background (don't await)
+          generateConversationTitle(userMessage.content, assistantMessage.content).then((title) => {
+            updateConversation(conversation.conversationId, { name: title }).catch((err) => {
+              console.error('Error updating conversation title:', err);
+            });
+          });
+        }
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request aborted');
@@ -147,7 +171,7 @@ export function ConversationPanel({
   const handleBranch = () => {
     if (onBranch && branchSelection) {
       const branchContext: BranchContext = {
-        sourceConversationId: conversation.id,
+        sourceBranchId: conversation.id,
         sourceMessageId: branchSelection.message.id,
         selectedText: branchSelection.text,
       };
@@ -156,16 +180,16 @@ export function ConversationPanel({
     }
   };
 
-  const handleBranchToExistingConversation = (conversationId: string) => {
+  const handleBranchToExistingBranch = (branchId: string) => {
     if (onBranchToConversation && branchSelection) {
-      onBranchToConversation(conversationId, branchSelection.text);
+      onBranchToConversation(branchId, branchSelection.text);
       setBranchSelection(null);
     }
   };
 
   const handleModelChange = async (newModel: string) => {
     setSelectedModel(newModel);
-    await updateConversation(conversation.id, { model: newModel });
+    await updateBranch(conversation.id, { model: newModel });
     setShowModelSelector(false);
   };
 
@@ -179,29 +203,29 @@ export function ConversationPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-black border-r border-white/10 ${isActive ? 'ring-1 ring-blue-500/50' : ''}`}>
+    <div className="flex flex-col h-full bg-black border-r border-zinc-800">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60 backdrop-blur-sm">
+      <div className="h-11 md:h-12 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h2 className="text-sm font-medium text-gray-300 truncate">
-            {conversation.title || `Conversation ${conversation.position + 1}`}
+          <h2 className="text-xs md:text-sm font-medium text-white truncate font-mono">
+            {conversation.title || `BRANCH ${conversation.position + 1}`}
           </h2>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowModelSelector(!showModelSelector)}
-            className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
+            className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
             title="Change model"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 text-zinc-500" />
           </button>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
-              title="Close conversation"
+              className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+              title="Close branch"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-zinc-500" />
             </button>
           )}
         </div>
@@ -209,15 +233,15 @@ export function ConversationPanel({
 
       {/* Model Selector */}
       {showModelSelector && (
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <label className="text-xs font-medium text-gray-400 mb-2 block">Select Model</label>
+        <div className="px-3 py-3 bg-zinc-900 border-b border-zinc-800 flex-shrink-0">
+          <label className="text-xs font-medium text-zinc-600 mb-2 block font-mono">SELECT MODEL</label>
           <select
             value={selectedModel}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="w-full text-sm px-3 py-2 border border-white/10 rounded-lg bg-white/5 text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full text-sm px-3 py-3 md:py-2 border-0 bg-zinc-950 text-white focus:outline-none font-mono min-h-[44px]"
           >
             {POPULAR_MODELS.map((model) => (
-              <option key={model.id} value={model.id} className="bg-gray-900">
+              <option key={model.id} value={model.id} className="bg-zinc-950">
                 {model.name}
               </option>
             ))}
@@ -234,17 +258,20 @@ export function ConversationPanel({
       />
 
       {/* Input */}
-      <MessageInput
-        onSend={handleSendMessage}
-        disabled={isStreaming}
-        mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
-      />
+      <div className="flex-shrink-0">
+        <MessageInput
+          key={conversation.id}
+          onSend={handleSendMessage}
+          disabled={isStreaming}
+          mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
+        />
+      </div>
 
       {/* Branch Button */}
       {branchSelection && (
         <BranchButton
           onBranch={handleBranch}
-          onBranchToConversation={handleBranchToExistingConversation}
+          onBranchToConversation={handleBranchToExistingBranch}
           availableConversations={availableConversations}
           currentConversationId={conversation.id}
         />

@@ -5,32 +5,32 @@
 
 export interface Message {
   id: string;
-  conversationId: string;
+  branchId: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
   // Branching metadata
-  branchSourceConversationId?: string;
+  branchSourceBranchId?: string;
   branchSourceMessageId?: string;
   branchSelectedText?: string;
 }
 
-export interface Conversation {
+export interface Branch {
   id: string;
-  groupId: string;
+  conversationId: string;
   messages: Message[];
   model: string; // OpenRouter model identifier
   title?: string; // Auto-generated or user-set
   createdAt: number;
   updatedAt: number;
-  position: number; // Order in the group layout (0-indexed)
+  position: number; // Order in the conversation layout (0-indexed)
   initialInput?: string; // Prepopulated input text (e.g., from branching) - deprecated, use mentionedTexts
   mentionedTexts?: string[]; // Array of referenced texts from branching
 }
 
-export interface ConversationGroup {
+export interface Conversation {
   id: string;
-  conversationIds: string[];
+  branchIds: string[];
   name?: string; // Auto-generated or user-set
   tags?: string[];
   createdAt: number;
@@ -62,7 +62,7 @@ export interface OpenRouterStreamChunk {
 
 // UI State types
 export interface BranchContext {
-  sourceConversationId: string;
+  sourceBranchId: string;
   sourceMessageId?: string;
   selectedText?: string;
 }
