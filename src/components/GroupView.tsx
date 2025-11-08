@@ -210,18 +210,18 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
       <div className="h-full flex snap-x snap-mandatory md:snap-none w-max">
         <PanelGroup direction="horizontal" className="h-full">
           {conversations.map((conversation, index) => (
-            <div
-              key={conversation.id}
-              ref={(el) => {
-                if (el) {
-                  panelRefsMap.current.set(conversation.id, el);
-                } else {
-                  panelRefsMap.current.delete(conversation.id);
-                }
-              }}
-              className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
-            >
-            <Panel
+            <div key={`wrapper-${conversation.id}`} className="contents">
+              <div
+                ref={(el) => {
+                  if (el) {
+                    panelRefsMap.current.set(conversation.id, el);
+                  } else {
+                    panelRefsMap.current.delete(conversation.id);
+                  }
+                }}
+                className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
+              >
+                <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
               onClick={() => setActiveConversationId(conversation.id)}
@@ -235,12 +235,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
                 availableConversations={conversations}
                 isActive={activeConversationId === conversation.id}
               />
-            </Panel>
-            {index < conversations.length - 1 && (
-              <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" />
-            )}
-          </div>
-        ))}
+                </Panel>
+              </div>
+              {index < conversations.length - 1 && (
+                <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" />
+              )}
+            </div>
+          ))}
       </PanelGroup>
       </div>
     </div>
