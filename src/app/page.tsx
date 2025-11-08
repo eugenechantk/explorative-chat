@@ -13,6 +13,7 @@ import {
   updateConversation,
   generateId,
 } from '@/lib/storage/operations';
+import { isStorageAvailable } from '@/lib/storage/db';
 import { Menu, X, Plus } from 'lucide-react';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
@@ -24,6 +25,8 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed for mobile-first approach
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Set sidebar open on desktop on mount
   useEffect(() => {
@@ -69,7 +72,19 @@ export default function Home() {
   };
 
   const handleCreateNewConversation = async () => {
+    // Prevent double-taps on mobile
+    if (isCreating) return;
+
+    // Check if storage is available (fails in Safari private mode)
+    if (!isStorageAvailable()) {
+      setCreateError('Storage not available. Please disable private browsing mode.');
+      alert('Storage not available. Please disable private browsing mode or check browser settings.');
+      return;
+    }
+
     try {
+      setIsCreating(true);
+      setCreateError(null);
       console.log('[CREATE] Starting conversation creation...');
 
       const newConversation: Conversation = {
@@ -118,6 +133,7 @@ export default function Home() {
       console.log('[CREATE] Step 5: SUCCESS - Conversations reloaded');
 
       console.log('[CREATE] COMPLETE - All steps succeeded');
+      setIsCreating(false);
     } catch (error) {
       console.error('[CREATE] ERROR occurred:', error);
       console.error('[CREATE] Error details:', {
@@ -125,7 +141,13 @@ export default function Home() {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      alert(`Error creating conversation: ${error instanceof Error ? error.message : String(error)}`);
+
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setCreateError(errorMessage);
+      setIsCreating(false);
+
+      // Also show alert for visibility
+      alert(`Error creating conversation: ${errorMessage}`);
     }
   };
 
@@ -198,7 +220,8 @@ export default function Home() {
         },
       },
       {
-        key: '?',
+        key: '/',
+        metaKey: true,
         description: 'Show keyboard shortcuts',
         action: () => setShowShortcutsHelp(true),
       },
@@ -245,10 +268,20 @@ export default function Home() {
         <div className="border-b border-zinc-800">
           <button
             onClick={handleCreateNewConversation}
-            className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors"
+            disabled={isCreating}
+            className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            NEW CONVERSATION
+            {isCreating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-zinc-600 border-t-transparent animate-spin"></div>
+                CREATING...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                NEW CONVERSATION
+              </>
+            )}
           </button>
         </div>
 
@@ -318,16 +351,33 @@ export default function Home() {
               }}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full bg-black">
+            <div className="flex flex-col items-center justify-center h-full bg-black px-4">
               <Plus className="w-16 h-16 mb-4 text-zinc-700" />
               <h3 className="text-base font-bold mb-2 text-white font-mono">NO ACTIVE CONVERSATION</h3>
-              <p className="text-sm mb-6 text-zinc-500 font-mono">CREATE A NEW CONVERSATION TO START CHATTING</p>
+              <p className="text-sm mb-6 text-zinc-500 font-mono text-center">CREATE A NEW CONVERSATION TO START CHATTING</p>
+
+              {createError && (
+                <div className="mb-4 p-3 bg-red-950 border border-red-800 text-red-200 text-xs font-mono max-w-md text-center">
+                  ERROR: {createError}
+                </div>
+              )}
+
               <button
                 onClick={handleCreateNewConversation}
-                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
+                disabled={isCreating}
+                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors min-w-[200px] justify-center"
               >
-                <Plus className="w-4 h-4" />
-                CREATE NEW CONVERSATION
+                {isCreating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-zinc-600 border-t-transparent animate-spin"></div>
+                    CREATING...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    CREATE NEW CONVERSATION
+                  </>
+                )}
               </button>
             </div>
           )}

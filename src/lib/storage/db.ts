@@ -24,4 +24,22 @@ class ExplorativeChatDB extends Dexie {
   }
 }
 
+// Check if IndexedDB is available (fails in Safari private mode and some mobile browsers)
+function isIndexedDBAvailable(): boolean {
+  try {
+    if (typeof window === 'undefined') return false;
+    if (!window.indexedDB) return false;
+
+    // Try to open a test database
+    const request = window.indexedDB.open('__test__');
+    request.onerror = () => false;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export const db = new ExplorativeChatDB();
+
+// Export availability checker
+export const isStorageAvailable = isIndexedDBAvailable;
