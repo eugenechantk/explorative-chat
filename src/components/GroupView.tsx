@@ -156,13 +156,15 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   if (conversations.length === 1) {
     // Single conversation - no need for resizable panels
     return (
-      <ConversationPanel
-        conversation={conversations[0]}
-        onBranch={handleBranch}
-        onBranchToConversation={handleBranchToExistingConversation}
-        availableConversations={conversations}
-        isActive={true}
-      />
+      <div className="h-full">
+        <ConversationPanel
+          conversation={conversations[0]}
+          onBranch={handleBranch}
+          onBranchToConversation={handleBranchToExistingConversation}
+          availableConversations={conversations}
+          isActive={true}
+        />
+      </div>
     );
   }
 
