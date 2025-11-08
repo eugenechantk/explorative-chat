@@ -93,17 +93,18 @@ code, pre {
 
 /* iOS Safari specific improvements */
 @supports (-webkit-touch-callout: none) {
-  /* Improve text selection on iOS */
-  * {
+  /* Enable text selection in message content only */
+  .prose, .select-text {
     -webkit-touch-callout: default;
     -webkit-user-select: text;
     user-select: text;
   }
 
-  /* But disable selection on interactive elements */
-  button, input, select, textarea {
+  /* Disable selection on interactive elements */
+  button, input, select, textarea, a {
     -webkit-user-select: none;
     user-select: none;
+    -webkit-touch-callout: none;
   }
 
   /* Enable smooth scrolling on iOS */

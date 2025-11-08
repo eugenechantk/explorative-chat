@@ -52,23 +52,47 @@ export function ConversationPanel({
     }
   }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clear branch selection when clicking elsewhere or selection changes
+  // Track text selection for branching
   useEffect(() => {
     const handleSelectionChange = () => {
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim();
-      if (!selectedText && branchSelection) {
-        setBranchSelection(null);
-      }
+      // Use requestAnimationFrame to ensure selection is stable
+      requestAnimationFrame(() => {
+        const selection = window.getSelection();
+        const selectedText = selection?.toString().trim();
+
+        if (selectedText) {
+          // Find which message contains the selection
+          const anchorNode = selection?.anchorNode;
+          if (anchorNode) {
+            let messageElement: HTMLElement | null = anchorNode.parentElement;
+
+            // Walk up the DOM to find the message container
+            while (messageElement && !messageElement.hasAttribute('data-message-id')) {
+              messageElement = messageElement.parentElement;
+            }
+
+            if (messageElement) {
+              const messageId = messageElement.getAttribute('data-message-id');
+              const message = messages.find(m => m.id === messageId);
+              if (message) {
+                setBranchSelection({ message, text: selectedText });
+              }
+            }
+          }
+        } else if (!selectedText && branchSelection) {
+          // Clear selection when text is deselected
+          setBranchSelection(null);
+        }
+      });
     };
 
     const handleMouseDown = (e: MouseEvent) => {
       // Only clear if clicking outside the branch button
       const target = e.target as HTMLElement;
-      if (!target.closest('[data-branch-button]')) {
+      if (!target.closest('[data-branch-button]') && branchSelection) {
         const selection = window.getSelection();
         const selectedText = selection?.toString().trim();
-        if (!selectedText && branchSelection) {
+        if (!selectedText) {
           setBranchSelection(null);
         }
       }
@@ -81,7 +105,7 @@ export function ConversationPanel({
       document.removeEventListener('selectionchange', handleSelectionChange);
       document.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [branchSelection]);
+  }, [branchSelection, messages]);
 
   const handleSendMessage = async (content: string, mentionedTexts?: string[]) => {
     // Combine mentioned texts and user content into a single prompt
@@ -183,15 +207,6 @@ export function ConversationPanel({
     }
   };
 
-  const handleMessageSelect = (message: Message, selectedText: string) => {
-    if (selectedText) {
-      setBranchSelection({ message, text: selectedText });
-    } else {
-      // Clear selection when text is empty
-      setBranchSelection(null);
-    }
-  };
-
   const handleBranch = () => {
     if (onBranch && branchSelection) {
       const branchContext: BranchContext = {
@@ -278,7 +293,6 @@ export function ConversationPanel({
         messages={messages}
         isStreaming={isStreaming}
         streamingContent={streamingContent}
-        onMessageSelect={handleMessageSelect}
       />
 
       {/* Input */}
