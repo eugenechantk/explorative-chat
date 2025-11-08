@@ -61,7 +61,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
           <div
             key={group.id}
             onClick={() => onSelectGroup(group)}
-            className={`w-full text-left px-3 py-2 border-b border-zinc-800 hover:bg-zinc-950 transition-colors cursor-pointer ${
+            className={`w-full text-left px-3 py-3 md:py-2 border-b border-zinc-800 hover:bg-zinc-950 transition-colors cursor-pointer min-h-[60px] md:min-h-0 ${
               activeGroupId === group.id ? 'bg-zinc-900' : ''
             } ${deletingId === group.id ? 'opacity-50 pointer-events-none' : ''}`}
           >
@@ -97,7 +97,7 @@ export function GroupsList({ groups, activeGroupId, onSelectGroup, onDeleteGroup
               </div>
               <button
                 onClick={(e) => handleDelete(e, group.id)}
-                className="p-1 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 text-zinc-500 transition-colors"
+                className="p-2 md:p-1 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 text-zinc-500 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
                 disabled={deletingId === group.id}
                 title="Delete group"
               >

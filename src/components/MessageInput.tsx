@@ -110,15 +110,16 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
           placeholder={mentions.length > 0 ? 'ADD YOUR MESSAGE...' : placeholder.toUpperCase()}
           disabled={disabled}
           rows={1}
-          className="w-full bg-zinc-950 border-0 px-3 py-3 pr-12 text-white placeholder:text-zinc-700 text-sm resize-none focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed max-h-[200px] overflow-y-auto"
+          className="w-full bg-zinc-950 border-0 px-3 py-3 pr-14 md:pr-12 text-white placeholder:text-zinc-700 text-sm md:text-sm resize-none focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed max-h-[200px] overflow-y-auto"
+          style={{ fontSize: '16px' }}
         />
         <button
           onClick={handleSend}
           disabled={disabled || (!message.trim() && mentions.length === 0)}
-          className="absolute right-3 top-3 p-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors disabled:bg-zinc-900 disabled:cursor-not-allowed"
+          className="absolute right-3 top-3 p-2 md:p-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors disabled:bg-zinc-900 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
           aria-label="Send message"
         >
-          <Send className="w-3.5 h-3.5 text-zinc-300" />
+          <Send className="w-4 h-4 md:w-3.5 md:h-3.5 text-zinc-300" />
         </button>
       </div>
     </div>

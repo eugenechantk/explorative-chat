@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import type { Conversation, ConversationGroup, BranchContext } from '@/lib/types';
 import { ConversationPanel } from './ConversationPanel';
@@ -23,6 +23,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     initialConversations[0]?.id || null
   );
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Sync conversations from props when they change
   useEffect(() => {
@@ -35,6 +36,20 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
       onGroupUpdate?.(group, conversations);
     }
   }, [conversations]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll to newest conversation when conversations length increases
+  useEffect(() => {
+    if (scrollContainerRef.current && conversations.length > 1) {
+      const container = scrollContainerRef.current;
+      // Scroll to the rightmost conversation (newest)
+      setTimeout(() => {
+        container.scrollTo({
+          left: container.scrollWidth,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [conversations.length]);
 
   const handleAddConversation = async () => {
     const newConversation: Conversation = {
@@ -170,15 +185,20 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
 
   // Multiple conversations - use resizable panels
   return (
-    <div className="h-full flex" style={{ minWidth: `${conversations.length * 600}px` }}>
+    <div
+      ref={scrollContainerRef}
+      className="h-full flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth md:snap-none"
+      style={{ minWidth: `${conversations.length * 600}px` }}
+    >
       <PanelGroup direction="horizontal">
         {conversations.map((conversation, index) => (
-          <div key={conversation.id}>
+          <div key={conversation.id} className="snap-center md:snap-align-none">
             <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
               onClick={() => setActiveConversationId(conversation.id)}
-              style={{ minWidth: '600px' }}
+              className="w-screen md:w-auto"
+              style={{ minWidth: '100vw' }}
             >
               <ConversationPanel
                 conversation={conversation}
@@ -190,7 +210,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
               />
             </Panel>
             {index < conversations.length - 1 && (
-              <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors" />
+              <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" />
             )}
           </div>
         ))}

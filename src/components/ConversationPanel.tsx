@@ -179,18 +179,18 @@ export function ConversationPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-black border-r border-zinc-800`}>
+    <div className={`flex flex-col h-full bg-black border-r border-zinc-800 md:border-r-0`}>
       {/* Header */}
-      <div className="h-11 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950">
+      <div className="h-11 md:h-12 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h2 className="text-sm font-medium text-white truncate font-mono">
+          <h2 className="text-xs md:text-sm font-medium text-white truncate font-mono">
             {conversation.title || `CONVERSATION ${conversation.position + 1}`}
           </h2>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowModelSelector(!showModelSelector)}
-            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
+            className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
             title="Change model"
           >
             <Settings className="w-4 h-4 text-zinc-500" />
@@ -198,7 +198,7 @@ export function ConversationPanel({
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
+              className="p-2 md:p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
               title="Close conversation"
             >
               <X className="w-4 h-4 text-zinc-500" />
@@ -209,12 +209,12 @@ export function ConversationPanel({
 
       {/* Model Selector */}
       {showModelSelector && (
-        <div className="px-3 py-3 bg-zinc-900 border-b border-zinc-800">
+        <div className="px-3 py-3 bg-zinc-900 border-b border-zinc-800 flex-shrink-0">
           <label className="text-xs font-medium text-zinc-600 mb-2 block font-mono">SELECT MODEL</label>
           <select
             value={selectedModel}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="w-full text-sm px-3 py-2 border-0 bg-zinc-950 text-white focus:outline-none font-mono"
+            className="w-full text-sm px-3 py-3 md:py-2 border-0 bg-zinc-950 text-white focus:outline-none font-mono min-h-[44px]"
           >
             {POPULAR_MODELS.map((model) => (
               <option key={model.id} value={model.id} className="bg-zinc-950">
@@ -226,19 +226,23 @@ export function ConversationPanel({
       )}
 
       {/* Messages */}
-      <MessageList
-        messages={messages}
-        isStreaming={isStreaming}
-        streamingContent={streamingContent}
-        onMessageSelect={handleMessageSelect}
-      />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <MessageList
+          messages={messages}
+          isStreaming={isStreaming}
+          streamingContent={streamingContent}
+          onMessageSelect={handleMessageSelect}
+        />
+      </div>
 
       {/* Input */}
-      <MessageInput
-        onSend={handleSendMessage}
-        disabled={isStreaming}
-        mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
-      />
+      <div className="flex-shrink-0">
+        <MessageInput
+          onSend={handleSendMessage}
+          disabled={isStreaming}
+          mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
+        />
+      </div>
 
       {/* Branch Button */}
       {branchSelection && (

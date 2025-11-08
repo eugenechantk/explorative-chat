@@ -21,9 +21,21 @@ export default function Home() {
   const [groups, setGroups] = useState<ConversationGroup[]>([]);
   const [activeGroup, setActiveGroup] = useState<ConversationGroup | null>(null);
   const [activeConversations, setActiveConversations] = useState<Conversation[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Start closed for mobile-first approach
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Set sidebar open on desktop on mount
+  useEffect(() => {
+    const checkIfDesktop = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
+    };
+    checkIfDesktop();
+    window.addEventListener('resize', checkIfDesktop);
+    return () => window.removeEventListener('resize', checkIfDesktop);
+  }, []);
 
   // Load groups on mount
   useEffect(() => {
@@ -164,12 +176,12 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-black">
+    <div className="flex h-screen bg-black" style={{ height: '100dvh' }}>
       {/* Sidebar */}
       <div
         className={`${
-          sidebarOpen ? 'w-72' : 'w-0'
-        } transition-all duration-300 bg-black border-r border-zinc-800 flex flex-col overflow-hidden`}
+          sidebarOpen ? 'w-72 md:w-72' : 'w-0'
+        } transition-all duration-300 bg-black border-r border-zinc-800 flex flex-col overflow-hidden fixed md:relative z-30 h-full`}
       >
         <div className="flex items-center justify-between px-3 h-12 border-b border-zinc-800">
           <h1 className="text-sm font-bold text-white font-mono tracking-tight">EXPLORATIVE CHAT</h1>
@@ -201,10 +213,18 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Main Content */}
-      <div className="flex-1 h-full flex flex-col overflow-hidden bg-black">
+      <div className="flex-1 h-full flex flex-col overflow-hidden bg-black w-full md:w-auto">
         {/* Top Bar */}
-        <div className="flex items-center gap-4 px-3 py-3 bg-zinc-950 border-b border-zinc-800">
+        <div className="flex items-center gap-2 md:gap-4 px-3 py-3 bg-zinc-950 border-b border-zinc-800 flex-shrink-0">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
@@ -228,10 +248,11 @@ export default function Home() {
           {activeGroup && activeConversations.length > 0 && (
             <button
               onClick={handleAddConversation}
-              className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
+              className="px-2 md:px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-1 md:gap-2 text-xs md:text-sm font-mono transition-colors min-h-[44px]"
             >
               <Plus className="w-4 h-4" />
-              NEW BRANCH
+              <span className="hidden sm:inline">NEW BRANCH</span>
+              <span className="sm:hidden">NEW</span>
             </button>
           )}
         </div>
