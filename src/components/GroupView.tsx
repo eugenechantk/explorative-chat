@@ -100,6 +100,12 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
       return;
     }
 
+    // Don't allow closing the first conversation (position 0)
+    const conversationToClose = conversations.find(c => c.id === conversationId);
+    if (conversationToClose?.position === 0) {
+      return;
+    }
+
     await deleteConversation(conversationId);
 
     const updatedConversations = conversations
@@ -229,7 +235,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
             >
               <ConversationPanel
                 conversation={conversation}
-                onClose={() => handleCloseConversation(conversation.id)}
+                onClose={conversation.position === 0 ? undefined : () => handleCloseConversation(conversation.id)}
                 onBranch={handleBranch}
                 onBranchToConversation={handleBranchToExistingConversation}
                 availableConversations={conversations}
