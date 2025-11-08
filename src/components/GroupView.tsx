@@ -24,6 +24,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     initialConversations[0]?.id || null
   );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const panelRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Sync conversations from props when they change
   useEffect(() => {
@@ -39,18 +40,23 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
 
   // Auto-scroll to newest conversation when conversations length increases
   useEffect(() => {
-    if (scrollContainerRef.current && conversations.length > 1) {
-      const container = scrollContainerRef.current;
-      // Scroll to the rightmost conversation (newest)
-      // Use requestAnimationFrame to ensure DOM has updated, then add a small delay for layout
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          container.scrollTo({
-            left: container.scrollWidth,
-            behavior: 'smooth'
-          });
-        }, 150);
-      });
+    if (conversations.length > 1) {
+      const lastConversation = conversations[conversations.length - 1];
+      const lastPanelElement = panelRefsMap.current.get(lastConversation.id);
+
+      if (lastPanelElement) {
+        // Use requestAnimationFrame to ensure DOM has been painted
+        requestAnimationFrame(() => {
+          // Add delay to ensure panel layout is complete
+          setTimeout(() => {
+            lastPanelElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+              inline: 'start'
+            });
+          }, 100);
+        });
+      }
     }
   }, [conversations.length]);
 
@@ -196,7 +202,17 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     >
       <PanelGroup direction="horizontal" className="h-full">
         {conversations.map((conversation, index) => (
-          <div key={conversation.id} className="snap-center md:snap-align-none h-full">
+          <div
+            key={conversation.id}
+            ref={(el) => {
+              if (el) {
+                panelRefsMap.current.set(conversation.id, el);
+              } else {
+                panelRefsMap.current.delete(conversation.id);
+              }
+            }}
+            className="snap-center md:snap-align-none h-full"
+          >
             <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
