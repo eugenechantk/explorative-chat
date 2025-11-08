@@ -23,10 +23,11 @@ export function MessageList({
 
   // Auto-scroll to top of new message when streaming starts
   useEffect(() => {
-    const newMessageAdded = messages.length > prevMessagesLengthRef.current;
     const streamingJustStarted = isStreaming && !wasStreamingRef.current;
+    const streamingJustEnded = !isStreaming && wasStreamingRef.current;
 
-    if ((newMessageAdded || streamingJustStarted) && streamingMessageRef.current) {
+    // Only scroll when streaming starts, not when it ends
+    if (streamingJustStarted && streamingMessageRef.current) {
       // Scroll to top of streaming message, not bottom
       streamingMessageRef.current.scrollIntoView({
         behavior: 'smooth',
@@ -34,6 +35,7 @@ export function MessageList({
       });
     }
 
+    // Don't scroll when streaming ends or when message count changes
     prevMessagesLengthRef.current = messages.length;
     wasStreamingRef.current = isStreaming;
   }, [messages.length, isStreaming, streamingContent]);
@@ -89,13 +91,6 @@ export function MessageList({
 
             <div className="text-white text-base leading-6 whitespace-pre-wrap break-words">
               {message.content}
-            </div>
-
-            <div className="text-xs text-zinc-600 mt-2 font-mono">
-              {new Date(message.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              }).toUpperCase()}
             </div>
           </div>
         </div>

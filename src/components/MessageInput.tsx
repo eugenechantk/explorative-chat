@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { Send, Quote } from 'lucide-react';
+import { Send, Quote, Loader2 } from 'lucide-react';
 
 interface MessageInputProps {
   onSend: (message: string, mentionedTexts?: string[]) => void;
@@ -9,9 +9,10 @@ interface MessageInputProps {
   placeholder?: string;
   initialValue?: string;
   mentionedTexts?: string[];
+  isStreaming?: boolean;
 }
 
-export function MessageInput({ onSend, disabled = false, placeholder = 'Type a message...', initialValue = '', mentionedTexts = [] }: MessageInputProps) {
+export function MessageInput({ onSend, disabled = false, placeholder = 'Type a message...', initialValue = '', mentionedTexts = [], isStreaming = false }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [mentions, setMentions] = useState<string[]>(mentionedTexts);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -125,7 +126,11 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
           className="px-3 md:px-4 hover:bg-zinc-900 border-l border-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-zinc-300"
           aria-label="Send message"
         >
-          <Send className="w-4 h-4 md:w-3.5 md:h-3.5" />
+          {isStreaming ? (
+            <Loader2 className="w-4 h-4 md:w-3.5 md:h-3.5 animate-spin" />
+          ) : (
+            <Send className="w-4 h-4 md:w-3.5 md:h-3.5" />
+          )}
         </button>
       </div>
     </div>

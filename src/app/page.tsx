@@ -9,6 +9,7 @@ import {
   createBranch,
   getAllConversations,
   getBranchesByConversation,
+  getConversation,
   deleteConversation,
   updateConversation,
   generateId,
@@ -51,13 +52,37 @@ export default function Home() {
       const allConversations = await getAllConversations();
       setConversations(allConversations);
 
-      if (allConversations.length > 0 && !activeConversation) {
+      // Update active conversation if it exists in the new list
+      if (activeConversation) {
+        const updatedActiveConversation = allConversations.find(c => c.id === activeConversation.id);
+        if (updatedActiveConversation) {
+          setActiveConversation(updatedActiveConversation);
+        }
+      } else if (allConversations.length > 0) {
         await selectConversation(allConversations[0]);
       }
     } catch (error) {
       console.error('Error loading conversations:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const refreshConversationTitle = async (conversationId: string) => {
+    try {
+      const updatedConversation = await getConversation(conversationId);
+      if (updatedConversation) {
+        // Update the conversations list
+        setConversations(prev =>
+          prev.map(c => c.id === conversationId ? updatedConversation : c)
+        );
+        // Update active conversation if it's the one that changed
+        if (activeConversation?.id === conversationId) {
+          setActiveConversation(updatedConversation);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing conversation title:', error);
     }
   };
 
@@ -348,6 +373,11 @@ export default function Home() {
               onGroupUpdate={(updatedConversation, updatedBranches) => {
                 setActiveConversation(updatedConversation);
                 setActiveBranches(updatedBranches);
+              }}
+              onConversationUpdated={() => {
+                if (activeConversation) {
+                  refreshConversationTitle(activeConversation.id);
+                }
               }}
             />
           ) : (

@@ -16,9 +16,10 @@ interface GroupViewProps {
   group: Conversation;
   conversations: Branch[];
   onGroupUpdate?: (group: Conversation, conversations: Branch[]) => void;
+  onConversationUpdated?: () => void;
 }
 
-export function GroupView({ group, conversations: initialBranches, onGroupUpdate }: GroupViewProps) {
+export function GroupView({ group, conversations: initialBranches, onGroupUpdate, onConversationUpdated }: GroupViewProps) {
   const [branches, setBranches] = useState<Branch[]>(initialBranches);
   const [activeBranchId, setActiveBranchId] = useState<string | null>(
     initialBranches[0]?.id || null
@@ -202,6 +203,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
           onBranchToConversation={handleBranchToExistingBranch}
           availableConversations={branches}
           isActive={true}
+          onConversationUpdated={onConversationUpdated}
         />
       </div>
     );
@@ -240,6 +242,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
                     onBranchToConversation={handleBranchToExistingBranch}
                     availableConversations={branches}
                     isActive={activeBranchId === branch.id}
+                    onConversationUpdated={onConversationUpdated}
                   />
                 </div>
               </Panel>

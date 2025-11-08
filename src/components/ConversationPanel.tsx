@@ -17,6 +17,7 @@ interface ConversationPanelProps {
   onBranchToConversation?: (branchId: string, selectedText: string) => void;
   availableConversations?: Branch[];
   isActive?: boolean;
+  onConversationUpdated?: () => void;
 }
 
 export function ConversationPanel({
@@ -26,6 +27,7 @@ export function ConversationPanel({
   onBranchToConversation,
   availableConversations = [],
   isActive = false,
+  onConversationUpdated,
 }: ConversationPanelProps) {
   const [messages, setMessages] = useState<Message[]>(conversation.messages || []);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -96,6 +98,10 @@ export function ConversationPanel({
     // Clear mentionedTexts after sending
     await updateBranch(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
 
+    // Generate conversation title if this is the first user message and first branch
+    // Do this AFTER streaming completes to avoid state conflicts
+    const shouldGenerateTitle = updatedMessages.length === 1 && conversation.position === 0;
+
     // Start streaming assistant response
     setIsStreaming(true);
     setStreamingContent('');
@@ -133,15 +139,25 @@ export function ConversationPanel({
       await createMessage(assistantMessage);
       await updateBranch(conversation.id, { messages: finalMessages });
 
-      // Generate conversation title if this is the first message exchange and first branch
-      if (finalMessages.length === 2 && conversation.position === 0) {
+      // Generate title after streaming is complete to avoid state conflicts
+      if (shouldGenerateTitle) {
         const conversationData = await getConversation(conversation.conversationId);
+        console.log('[TITLE] Checking after streaming complete:', conversationData);
+
         if (conversationData && !conversationData.name) {
+          console.log('[TITLE] Generating title from user message...');
           // Generate title in the background (don't await)
-          generateConversationTitle(userMessage.content, assistantMessage.content).then((title) => {
-            updateConversation(conversation.conversationId, { name: title }).catch((err) => {
-              console.error('Error updating conversation title:', err);
-            });
+          generateConversationTitle(userMessage.content, '').then((title) => {
+            console.log('[TITLE] Generated title:', title);
+            return updateConversation(conversation.conversationId, { name: title });
+          }).then(() => {
+            console.log('[TITLE] Title updated in database, notifying parent...');
+            // Notify parent component to refresh
+            if (onConversationUpdated) {
+              onConversationUpdated();
+            }
+          }).catch((err) => {
+            console.error('[TITLE] Error generating/updating title:', err);
           });
         }
       }
@@ -207,7 +223,7 @@ export function ConversationPanel({
       {/* Header */}
       <div className="h-11 md:h-12 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h2 className="text-xs md:text-sm font-medium text-white truncate font-mono">
+          <h2 className="text-xs md:text-sm font-medium text-white truncate font-mono line-clamp-1">
             {conversation.title || `BRANCH ${conversation.position + 1}`}
           </h2>
         </div>
@@ -263,6 +279,7 @@ export function ConversationPanel({
           key={conversation.id}
           onSend={handleSendMessage}
           disabled={isStreaming}
+          isStreaming={isStreaming}
           mentionedTexts={conversation.mentionedTexts || (conversation.initialInput ? [conversation.initialInput] : [])}
         />
       </div>

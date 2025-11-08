@@ -7,6 +7,15 @@ export async function generateConversationTitle(
   assistantMessage: string
 ): Promise<string> {
   try {
+    console.log('[generateTitle] Starting title generation...');
+
+    // Build the prompt based on what we have
+    let prompt = 'Based on this user message, generate a short, descriptive title (max 5 words). Only respond with the title, nothing else.\n\nUser: ' + userMessage.slice(0, 500);
+
+    if (assistantMessage) {
+      prompt = 'Based on this conversation, generate a short, descriptive title (max 5 words). Only respond with the title, nothing else.\n\nUser: ' + userMessage.slice(0, 500) + '\n\nAssistant: ' + assistantMessage.slice(0, 500);
+    }
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
@@ -17,14 +26,18 @@ export async function generateConversationTitle(
         messages: [
           {
             role: 'user',
-            content: 'Based on this conversation, generate a short, descriptive title (max 5 words). Only respond with the title, nothing else.\n\nUser: ' + userMessage.slice(0, 500) + '\n\nAssistant: ' + assistantMessage.slice(0, 500),
+            content: prompt,
           },
         ],
       }),
     });
 
+    console.log('[generateTitle] Response status:', response.status);
+
     if (!response.ok) {
-      throw new Error('Failed to generate title');
+      const errorText = await response.text();
+      console.error('[generateTitle] API error:', errorText);
+      throw new Error('Failed to generate title: ' + errorText);
     }
 
     if (!response.body) {
@@ -71,9 +84,11 @@ export async function generateConversationTitle(
     }
 
     // Clean up the title (remove quotes, trim, limit length)
-    return fullResponse.trim().replace(/^["']|["']$/g, '').slice(0, 50);
+    const cleanedTitle = fullResponse.trim().replace(/^["']|["']$/g, '').slice(0, 50);
+    console.log('[generateTitle] Generated title:', cleanedTitle);
+    return cleanedTitle;
   } catch (error) {
-    console.error('Error generating conversation title:', error);
+    console.error('[generateTitle] Error generating conversation title:', error);
     // Return a fallback title
     return 'New Conversation';
   }
