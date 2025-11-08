@@ -18,15 +18,14 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Sync mentioned texts from props
+  // Note: This pattern syncs props to state, which is intentional for this component
+  // The component needs local state because users can remove mentions
+  /* eslint-disable react-compiler/react-compiler */
   useEffect(() => {
+    // Update local state when prop changes (needed for prop-to-state sync pattern)
     setMentions(mentionedTexts);
-    // Focus on textarea after a short delay to ensure rendering
-    if (mentionedTexts.length > 0) {
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
-    }
   }, [mentionedTexts]);
+  /* eslint-enable react-compiler/react-compiler */
 
   const handleSend = () => {
     const trimmedMessage = message.trim();
@@ -50,7 +49,6 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
 
   const handleRemoveMention = (index: number) => {
     setMentions(mentions.filter((_, i) => i !== index));
-    textareaRef.current?.focus();
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -66,7 +64,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
     // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   };
 
@@ -82,7 +80,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
     <div className="border-t border-zinc-800 bg-black">
       {/* Mentioned Texts Callouts */}
       {mentions.length > 0 && (
-        <div className="px-3 pt-3 pb-3 space-y-2 border-b border-zinc-800">
+        <div className="px-3 pt-3 pb-3 space-y-2 border-b border-zinc-800 max-h-[400px] overflow-y-auto">
           {mentions.map((mentionedText, index) => (
             <div key={index} className="bg-zinc-950 border border-zinc-800 p-3">
               <div className="flex items-start gap-2">
@@ -117,7 +115,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
           placeholder={mentions.length > 0 ? 'Add your message...' : placeholder}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-zinc-950 border-0 px-3 py-3 text-white placeholder:text-zinc-700 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed max-h-[120px] overflow-y-auto"
+          className="flex-1 bg-zinc-950 border-0 px-3 py-3 text-white placeholder:text-zinc-700 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed max-h-[200px] overflow-y-auto"
           style={{ fontSize: '16px', fontFamily: 'system-ui, -apple-system, sans-serif' }}
         />
         <button

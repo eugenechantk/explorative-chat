@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import type { Branch, Conversation, BranchContext } from '@/lib/types';
 import { ConversationPanel } from './ConversationPanel';
 import {
@@ -182,6 +181,22 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
 
     setBranches(updatedBranches);
     setActiveBranchId(branchId);
+
+    // Scroll to the target branch
+    const targetPanelElement = panelRefsMap.current.get(branchId);
+    if (targetPanelElement) {
+      // Use requestAnimationFrame to ensure DOM has been painted
+      requestAnimationFrame(() => {
+        // Add delay to ensure panel layout is complete
+        setTimeout(() => {
+          targetPanelElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'start'
+          });
+        }, 100);
+      });
+    }
   };
 
 
@@ -209,49 +224,37 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
     );
   }
 
-  // Multiple branches - use resizable panels
+  // Multiple branches - horizontal scroll layout
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
+      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory lg:snap-none"
     >
-      <div className="h-full flex snap-x snap-mandatory md:snap-none w-max">
-        <PanelGroup direction="horizontal" className="h-full">
-          {branches.map((branch, index) => (
-            <div key={`wrapper-${branch.id}`} className="contents">
-              <Panel
-                defaultSize={100 / branches.length}
-                minSize={20}
-                onClick={() => setActiveBranchId(branch.id)}
-                className="snap-center md:snap-align-none w-screen md:w-[720px] flex-shrink-0"
-              >
-                <div
-                  ref={(el) => {
-                    if (el) {
-                      panelRefsMap.current.set(branch.id, el);
-                    } else {
-                      panelRefsMap.current.delete(branch.id);
-                    }
-                  }}
-                  className="h-full"
-                >
-                  <ConversationPanel
-                    conversation={branch}
-                    onClose={branch.position === 0 ? undefined : () => handleCloseBranch(branch.id)}
-                    onBranch={handleBranch}
-                    onBranchToConversation={handleBranchToExistingBranch}
-                    availableConversations={branches}
-                    isActive={activeBranchId === branch.id}
-                    onConversationUpdated={onConversationUpdated}
-                  />
-                </div>
-              </Panel>
-              {index < branches.length - 1 && (
-                <PanelResizeHandle className="bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" style={{ width: '1px' }} />
-              )}
-            </div>
-          ))}
-        </PanelGroup>
+      <div className="h-full flex">
+        {branches.map((branch) => (
+          <div
+            key={branch.id}
+            ref={(el) => {
+              if (el) {
+                panelRefsMap.current.set(branch.id, el);
+              } else {
+                panelRefsMap.current.delete(branch.id);
+              }
+            }}
+            onClick={() => setActiveBranchId(branch.id)}
+            className="h-full w-screen md:w-[720px] flex-shrink-0 snap-start lg:snap-align-none"
+          >
+            <ConversationPanel
+              conversation={branch}
+              onClose={branch.position === 0 ? undefined : () => handleCloseBranch(branch.id)}
+              onBranch={handleBranch}
+              onBranchToConversation={handleBranchToExistingBranch}
+              availableConversations={branches}
+              isActive={activeBranchId === branch.id}
+              onConversationUpdated={onConversationUpdated}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
