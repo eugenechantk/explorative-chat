@@ -16,17 +16,42 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
   const [message, setMessage] = useState('');
   const [mentions, setMentions] = useState<string[]>(mentionedTexts);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync mentioned texts from props
+  // Sync mentioned texts from props and auto-focus when they change
+  // Note: This pattern syncs props to state, which is intentional for this component
+  // The component needs local state because users can remove mentions
+  /* eslint-disable react-compiler/react-compiler */
   useEffect(() => {
+    // Update local state when prop changes (needed for prop-to-state sync pattern)
     setMentions(mentionedTexts);
-    // Focus on textarea after a short delay to ensure rendering
+
+    // Focus on textarea after a delay to ensure rendering and scroll animations complete
+    // Longer delay (500ms) accounts for panel scroll animations when branching
     if (mentionedTexts.length > 0) {
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
+      // Clear any existing timeout to avoid multiple focuses
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+      }
+
+      focusTimeoutRef.current = setTimeout(() => {
+        // Only focus if the textarea exists and isn't already focused
+        if (textareaRef.current && document.activeElement !== textareaRef.current) {
+          textareaRef.current.focus();
+        }
+        focusTimeoutRef.current = null;
+      }, 500);
     }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+        focusTimeoutRef.current = null;
+      }
+    };
   }, [mentionedTexts]);
+  /* eslint-enable react-compiler/react-compiler */
 
   const handleSend = () => {
     const trimmedMessage = message.trim();
