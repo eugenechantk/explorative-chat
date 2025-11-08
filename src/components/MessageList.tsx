@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Message } from '@/lib/types';
 import { User, Bot, Sparkles } from 'lucide-react';
+import { MessageContent } from './MessageContent';
 
 interface MessageListProps {
   messages: Message[];
@@ -89,9 +90,10 @@ export function MessageList({
               </div>
             )}
 
-            <div className="text-white text-base leading-6 whitespace-pre-wrap break-words">
-              {message.content}
-            </div>
+            <MessageContent
+              content={message.content}
+              className="text-white text-base"
+            />
           </div>
         </div>
       ))}
@@ -102,10 +104,11 @@ export function MessageList({
             <Bot className="w-3.5 h-3.5 text-zinc-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-zinc-300 text-base leading-6 whitespace-pre-wrap break-words">
-              {streamingContent}
-              <span className="inline-block w-1.5 h-4 ml-1 bg-zinc-500 animate-pulse" />
-            </div>
+            <MessageContent
+              content={streamingContent}
+              className="text-zinc-300 text-base"
+            />
+            <span className="inline-block w-1.5 h-4 ml-1 bg-zinc-500 animate-pulse" />
           </div>
         </div>
       )}
