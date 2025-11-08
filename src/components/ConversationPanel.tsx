@@ -98,9 +98,28 @@ export function ConversationPanel({
     // Clear mentionedTexts after sending
     await updateBranch(conversation.id, { messages: updatedMessages, mentionedTexts: [] });
 
-    // Generate conversation title if this is the first user message and first branch
-    // Do this AFTER streaming completes to avoid state conflicts
-    const shouldGenerateTitle = updatedMessages.length === 1 && conversation.position === 0;
+    // Generate conversation title immediately after first user message in first branch
+    if (updatedMessages.length === 1 && conversation.position === 0) {
+      const conversationData = await getConversation(conversation.conversationId);
+      console.log('[TITLE] Checking after first user message:', conversationData);
+
+      if (conversationData && !conversationData.name) {
+        console.log('[TITLE] Generating title from user message immediately...');
+        // Generate title in the background (don't await)
+        generateConversationTitle(userMessage.content, '').then((title) => {
+          console.log('[TITLE] Generated title:', title);
+          return updateConversation(conversation.conversationId, { name: title });
+        }).then(() => {
+          console.log('[TITLE] Title updated in database, notifying parent...');
+          // Notify parent component to refresh
+          if (onConversationUpdated) {
+            onConversationUpdated();
+          }
+        }).catch((err) => {
+          console.error('[TITLE] Error generating/updating title:', err);
+        });
+      }
+    }
 
     // Start streaming assistant response
     setIsStreaming(true);
@@ -138,29 +157,6 @@ export function ConversationPanel({
       // Save assistant message to storage
       await createMessage(assistantMessage);
       await updateBranch(conversation.id, { messages: finalMessages });
-
-      // Generate title after streaming is complete to avoid state conflicts
-      if (shouldGenerateTitle) {
-        const conversationData = await getConversation(conversation.conversationId);
-        console.log('[TITLE] Checking after streaming complete:', conversationData);
-
-        if (conversationData && !conversationData.name) {
-          console.log('[TITLE] Generating title from user message...');
-          // Generate title in the background (don't await)
-          generateConversationTitle(userMessage.content, '').then((title) => {
-            console.log('[TITLE] Generated title:', title);
-            return updateConversation(conversation.conversationId, { name: title });
-          }).then(() => {
-            console.log('[TITLE] Title updated in database, notifying parent...');
-            // Notify parent component to refresh
-            if (onConversationUpdated) {
-              onConversationUpdated();
-            }
-          }).catch((err) => {
-            console.error('[TITLE] Error generating/updating title:', err);
-          });
-        }
-      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request aborted');
