@@ -25,6 +25,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const panelRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevConversationsLengthRef = useRef<number>(initialConversations.length);
 
   // Sync conversations from props when they change
   useEffect(() => {
@@ -38,9 +39,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     }
   }, [conversations]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-scroll to newest conversation when conversations length increases
+  // Auto-scroll to newest conversation when a new conversation is added (not on initial load)
   useEffect(() => {
-    if (conversations.length > 1) {
+    const prevLength = prevConversationsLengthRef.current;
+    const currentLength = conversations.length;
+
+    // Only scroll if length increased (new conversation added) and we have multiple conversations
+    if (currentLength > prevLength && currentLength > 1) {
       const lastConversation = conversations[conversations.length - 1];
       const lastPanelElement = panelRefsMap.current.get(lastConversation.id);
 
@@ -58,6 +63,9 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
         });
       }
     }
+
+    // Update the ref for next comparison
+    prevConversationsLengthRef.current = currentLength;
   }, [conversations.length]);
 
   const handleAddConversation = async () => {
