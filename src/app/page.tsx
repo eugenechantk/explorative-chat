@@ -69,50 +69,65 @@ export default function Home() {
   };
 
   const handleCreateNewConversation = async () => {
-    const newConversation: Conversation = {
-      id: generateId(),
-      branchIds: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    try {
+      const newConversation: Conversation = {
+        id: generateId(),
+        branchIds: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
 
-    await createConversation(newConversation);
+      await createConversation(newConversation);
 
-    // Create initial branch
-    const initialBranch: Branch = {
-      id: generateId(),
-      conversationId: newConversation.id,
-      messages: [],
-      model: 'anthropic/claude-3.5-sonnet',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      position: 0,
-    };
+      // Create initial branch
+      const initialBranch: Branch = {
+        id: generateId(),
+        conversationId: newConversation.id,
+        messages: [],
+        model: 'anthropic/claude-3.5-sonnet',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        position: 0,
+      };
 
-    await createBranch(initialBranch);
+      await createBranch(initialBranch);
 
-    newConversation.branchIds = [initialBranch.id];
+      // Update conversation with branch ID in database
+      await updateConversation(newConversation.id, { branchIds: [initialBranch.id] });
 
-    setActiveConversation(newConversation);
-    setActiveBranches([initialBranch]);
-    await loadConversations();
+      // Update local state
+      newConversation.branchIds = [initialBranch.id];
+
+      setActiveConversation(newConversation);
+      setActiveBranches([initialBranch]);
+      await loadConversations();
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      alert('Error creating conversation. Please try again.');
+    }
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    await deleteConversation(conversationId);
+    try {
+      await deleteConversation(conversationId);
 
-    if (activeConversation?.id === conversationId) {
-      setActiveConversation(null);
-      setActiveBranches([]);
+      if (activeConversation?.id === conversationId) {
+        setActiveConversation(null);
+        setActiveBranches([]);
+      }
+
+      await loadConversations();
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      alert('Error deleting conversation. Please try again.');
     }
-
-    await loadConversations();
   };
 
   const handleAddBranch = async () => {
     if (!activeConversation) return;
 
-    const newBranch: Branch = {
+    try {
+      const newBranch: Branch = {
       id: generateId(),
       conversationId: activeConversation.id,
       messages: [],
@@ -131,11 +146,15 @@ export default function Home() {
       updatedAt: Date.now(),
     };
 
-    await updateConversation(activeConversation.id, updatedConversation);
+      await updateConversation(activeConversation.id, updatedConversation);
 
-    setActiveBranches(updatedBranches);
-    setActiveConversation(updatedConversation);
-    await loadConversations();
+      setActiveBranches(updatedBranches);
+      setActiveConversation(updatedConversation);
+      await loadConversations();
+    } catch (error) {
+      console.error('Error adding branch:', error);
+      alert('Error adding branch. Please try again.');
+    }
   };
 
   // Keyboard shortcuts
