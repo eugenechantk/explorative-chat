@@ -10,6 +10,7 @@ import {
   getAllGroups,
   getConversationsByGroup,
   deleteGroup,
+  updateGroup,
   generateId,
 } from '@/lib/storage/operations';
 import { Menu, X, Plus } from 'lucide-react';
@@ -85,6 +86,35 @@ export default function Home() {
       setActiveConversations([]);
     }
 
+    await loadGroups();
+  };
+
+  const handleAddConversation = async () => {
+    if (!activeGroup) return;
+
+    const newConversation: Conversation = {
+      id: generateId(),
+      groupId: activeGroup.id,
+      messages: [],
+      model: 'anthropic/claude-3.5-sonnet',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      position: activeConversations.length,
+    };
+
+    await createConversation(newConversation);
+
+    const updatedConversations = [...activeConversations, newConversation];
+    const updatedGroup = {
+      ...activeGroup,
+      conversationIds: [...activeGroup.conversationIds, newConversation.id],
+      updatedAt: Date.now(),
+    };
+
+    await updateGroup(activeGroup.id, updatedGroup);
+
+    setActiveConversations(updatedConversations);
+    setActiveGroup(updatedGroup);
     await loadGroups();
   };
 
@@ -195,6 +225,15 @@ export default function Home() {
               </div>
             )}
           </div>
+          {activeGroup && activeConversations.length > 0 && (
+            <button
+              onClick={handleAddConversation}
+              className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              NEW BRANCH
+            </button>
+          )}
         </div>
 
         {/* Group View */}

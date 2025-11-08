@@ -11,7 +11,6 @@ import {
   updateGroup,
   generateId,
 } from '@/lib/storage/operations';
-import { Plus } from 'lucide-react';
 
 interface GroupViewProps {
   group: ConversationGroup;
@@ -149,13 +148,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   if (conversations.length === 0) {
     return (
       <div className="flex items-center justify-center h-full bg-black">
-        <button
-          onClick={handleAddConversation}
-          className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          START NEW CONVERSATION
-        </button>
+        <p className="text-zinc-500 text-sm font-mono">NO CONVERSATIONS IN THIS GROUP</p>
       </div>
     );
   }
@@ -163,69 +156,43 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   if (conversations.length === 1) {
     // Single conversation - no need for resizable panels
     return (
-      <div className="h-full flex flex-col">
-        <div className="flex justify-end px-3 py-2 border-b border-zinc-800 bg-zinc-950">
-          <button
-            onClick={handleAddConversation}
-            className="px-3 py-2 text-sm bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 font-mono transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            NEW CONVERSATION
-          </button>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <ConversationPanel
-            conversation={conversations[0]}
-            onBranch={handleBranch}
-            onBranchToConversation={handleBranchToExistingConversation}
-            availableConversations={conversations}
-            isActive={true}
-          />
-        </div>
-      </div>
+      <ConversationPanel
+        conversation={conversations[0]}
+        onBranch={handleBranch}
+        onBranchToConversation={handleBranchToExistingConversation}
+        availableConversations={conversations}
+        isActive={true}
+      />
     );
   }
 
   // Multiple conversations - use resizable panels
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex justify-end px-3 py-2 border-b border-zinc-800 bg-zinc-950">
-        <button
-          onClick={handleAddConversation}
-          className="px-3 py-2 text-sm bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 font-mono transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          NEW CONVERSATION
-        </button>
-      </div>
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="h-full flex" style={{ minWidth: `${conversations.length * 600}px` }}>
-          <PanelGroup direction="horizontal">
-            {conversations.map((conversation, index) => (
-              <div key={conversation.id}>
-                <Panel
-                  defaultSize={100 / conversations.length}
-                  minSize={20}
-                  onClick={() => setActiveConversationId(conversation.id)}
-                  style={{ minWidth: '600px' }}
-                >
-                  <ConversationPanel
-                    conversation={conversation}
-                    onClose={() => handleCloseConversation(conversation.id)}
-                    onBranch={handleBranch}
-                    onBranchToConversation={handleBranchToExistingConversation}
-                    availableConversations={conversations}
-                    isActive={activeConversationId === conversation.id}
-                  />
-                </Panel>
-                {index < conversations.length - 1 && (
-                  <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors" />
-                )}
-              </div>
-            ))}
-          </PanelGroup>
-        </div>
-      </div>
+    <div className="h-full flex overflow-x-auto overflow-y-hidden" style={{ minWidth: `${conversations.length * 600}px` }}>
+      <PanelGroup direction="horizontal">
+        {conversations.map((conversation, index) => (
+          <div key={conversation.id}>
+            <Panel
+              defaultSize={100 / conversations.length}
+              minSize={20}
+              onClick={() => setActiveConversationId(conversation.id)}
+              style={{ minWidth: '600px' }}
+            >
+              <ConversationPanel
+                conversation={conversation}
+                onClose={() => handleCloseConversation(conversation.id)}
+                onBranch={handleBranch}
+                onBranchToConversation={handleBranchToExistingConversation}
+                availableConversations={conversations}
+                isActive={activeConversationId === conversation.id}
+              />
+            </Panel>
+            {index < conversations.length - 1 && (
+              <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors" />
+            )}
+          </div>
+        ))}
+      </PanelGroup>
     </div>
   );
 }
