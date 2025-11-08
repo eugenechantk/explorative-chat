@@ -213,18 +213,17 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
+      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-proximity lg:snap-none"
     >
-      <div className="h-full flex snap-x snap-proximity lg:snap-none w-max">
-        <PanelGroup direction="horizontal" className="h-full">
-          {branches.map((branch, index) => (
-            <div key={`wrapper-${branch.id}`} className="contents">
-              <Panel
-                defaultSize={100 / branches.length}
-                minSize={20}
-                onClick={() => setActiveBranchId(branch.id)}
-                className="snap-start lg:snap-align-none w-screen md:w-[720px] flex-shrink-0"
-              >
+      <PanelGroup direction="horizontal" className="h-full flex w-max">
+        {branches.map((branch, index) => (
+          <div key={`wrapper-${branch.id}`} className="contents">
+            <Panel
+              defaultSize={100 / branches.length}
+              minSize={20}
+              onClick={() => setActiveBranchId(branch.id)}
+              className="snap-start lg:snap-align-none w-screen md:w-[720px] flex-shrink-0"
+            >
                 <div
                   ref={(el) => {
                     if (el) {
@@ -252,7 +251,6 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
             </div>
           ))}
         </PanelGroup>
-      </div>
     </div>
   );
 }
