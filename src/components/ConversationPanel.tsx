@@ -189,7 +189,7 @@ export function ConversationPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-black border-r border-zinc-800 md:border-r-0`}>
+    <div className="flex flex-col h-full bg-black border-r border-zinc-800">
       {/* Header */}
       <div className="h-11 md:h-12 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950 flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">

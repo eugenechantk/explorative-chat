@@ -17,19 +17,21 @@ export function MessageList({
   streamingContent = '',
   onMessageSelect,
 }: MessageListProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const streamingMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
   const wasStreamingRef = useRef(isStreaming);
 
-  // Auto-scroll to bottom only when new messages arrive or streaming starts
+  // Auto-scroll to top of new message when streaming starts
   useEffect(() => {
-    const shouldScroll =
-      messages.length > prevMessagesLengthRef.current || // New message added
-      (isStreaming && !wasStreamingRef.current) || // Streaming just started
-      (isStreaming && streamingContent); // Streaming in progress
+    const newMessageAdded = messages.length > prevMessagesLengthRef.current;
+    const streamingJustStarted = isStreaming && !wasStreamingRef.current;
 
-    if (shouldScroll) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if ((newMessageAdded || streamingJustStarted) && streamingMessageRef.current) {
+      // Scroll to top of streaming message, not bottom
+      streamingMessageRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start' // Changed from default to 'start' to show top of message
+      });
     }
 
     prevMessagesLengthRef.current = messages.length;
@@ -100,7 +102,7 @@ export function MessageList({
       ))}
 
       {isStreaming && (
-        <div className="flex gap-3 px-3 py-3">
+        <div ref={streamingMessageRef} className="flex gap-3 px-3 py-3">
           <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
             <Bot className="w-3.5 h-3.5 text-zinc-500" />
           </div>
@@ -112,8 +114,6 @@ export function MessageList({
           </div>
         </div>
       )}
-
-      <div ref={messagesEndRef} />
     </div>
   );
 }

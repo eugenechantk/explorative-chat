@@ -217,38 +217,38 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
         <PanelGroup direction="horizontal" className="h-full">
           {branches.map((branch, index) => (
             <div key={`wrapper-${branch.id}`} className="contents">
-              <div
-                ref={(el) => {
-                  if (el) {
-                    panelRefsMap.current.set(branch.id, el);
-                  } else {
-                    panelRefsMap.current.delete(branch.id);
-                  }
-                }}
-                className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
+              <Panel
+                defaultSize={100 / branches.length}
+                minSize={20}
+                onClick={() => setActiveBranchId(branch.id)}
+                className="snap-center md:snap-align-none w-screen md:w-[650px] flex-shrink-0"
               >
-                <Panel
-              defaultSize={100 / branches.length}
-              minSize={20}
-              onClick={() => setActiveBranchId(branch.id)}
-              className="h-full w-full"
-            >
-              <ConversationPanel
-                conversation={branch}
-                onClose={branch.position === 0 ? undefined : () => handleCloseBranch(branch.id)}
-                onBranch={handleBranch}
-                onBranchToConversation={handleBranchToExistingBranch}
-                availableConversations={branches}
-                isActive={activeBranchId === branch.id}
-              />
-                </Panel>
-              </div>
+                <div
+                  ref={(el) => {
+                    if (el) {
+                      panelRefsMap.current.set(branch.id, el);
+                    } else {
+                      panelRefsMap.current.delete(branch.id);
+                    }
+                  }}
+                  className="h-full"
+                >
+                  <ConversationPanel
+                    conversation={branch}
+                    onClose={branch.position === 0 ? undefined : () => handleCloseBranch(branch.id)}
+                    onBranch={handleBranch}
+                    onBranchToConversation={handleBranchToExistingBranch}
+                    availableConversations={branches}
+                    isActive={activeBranchId === branch.id}
+                  />
+                </div>
+              </Panel>
               {index < branches.length - 1 && (
                 <PanelResizeHandle className="bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" style={{ width: '1px' }} />
               )}
             </div>
           ))}
-      </PanelGroup>
+        </PanelGroup>
       </div>
     </div>
   );
