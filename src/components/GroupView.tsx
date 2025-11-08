@@ -206,7 +206,6 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     <div
       ref={scrollContainerRef}
       className="h-full flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth md:snap-none"
-      style={{ minWidth: `${conversations.length * 600}px` }}
     >
       <PanelGroup direction="horizontal" className="h-full">
         {conversations.map((conversation, index) => (
@@ -219,14 +218,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
                 panelRefsMap.current.delete(conversation.id);
               }
             }}
-            className="snap-center md:snap-align-none h-full"
+            className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
           >
             <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
               onClick={() => setActiveConversationId(conversation.id)}
-              className="w-screen md:w-auto h-full"
-              style={{ minWidth: '100vw' }}
+              className="h-full w-full"
             >
               <ConversationPanel
                 conversation={conversation}
