@@ -35,7 +35,11 @@ export function ConversationPanel({
   const [streamingContent, setStreamingContent] = useState('');
   const [selectedModel, setSelectedModel] = useState(conversation.model || POPULAR_MODELS[0].id);
   const [showModelSelector, setShowModelSelector] = useState(false);
-  const [branchSelection, setBranchSelection] = useState<{ message: Message; text: string } | null>(null);
+  const [branchSelection, setBranchSelection] = useState<{
+    message: Message;
+    text: string;
+    position: { x: number; y: number };
+  } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevBranchIdRef = useRef(conversation.id);
 
@@ -133,8 +137,20 @@ export function ConversationPanel({
 
               const message = messages.find(m => m.id === messageId);
               if (message) {
-                addDebugLog('✓ Setting branch selection');
-                setBranchSelection({ message, text: selectedText });
+                // Get position NOW while selection is still active
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+
+                if (rect && rect.width > 0 && rect.height > 0) {
+                  const position = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + window.scrollY,
+                  };
+                  addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
+                  setBranchSelection({ message, text: selectedText, position });
+                } else {
+                  addDebugLog('ERROR: rect has zero dimensions');
+                }
               } else {
                 addDebugLog('ERROR: Message not found in messages array');
               }
@@ -381,6 +397,7 @@ export function ConversationPanel({
           availableConversations={availableConversations}
           currentConversationId={conversation.id}
           onDebugLog={addDebugLog}
+          initialPosition={branchSelection.position}
         />
       )}
 

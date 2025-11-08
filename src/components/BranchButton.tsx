@@ -15,6 +15,7 @@ interface BranchButtonProps {
   availableConversations?: Branch[];
   currentConversationId?: string;
   onDebugLog?: (message: string) => void;
+  initialPosition: { x: number; y: number };
 }
 
 export function BranchButton({
@@ -23,59 +24,15 @@ export function BranchButton({
   availableConversations = [],
   currentConversationId,
   onDebugLog,
+  initialPosition,
 }: BranchButtonProps) {
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const [position, setPosition] = useState<{ x: number; y: number }>(initialPosition);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    onDebugLog?.('BranchButton: Component mounted');
-
-    const updatePosition = () => {
-      const selection = window.getSelection();
-      onDebugLog?.(`BranchButton: selection exists: ${!!selection}`);
-      onDebugLog?.(`BranchButton: rangeCount: ${selection?.rangeCount || 0}`);
-      onDebugLog?.(`BranchButton: text: "${selection?.toString().trim().substring(0, 20) || 'none'}"`);
-
-      if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-
-        onDebugLog?.(`BranchButton: rect - width: ${rect.width}, height: ${rect.height}, top: ${rect.top}, left: ${rect.left}`);
-
-        if (rect && rect.width > 0 && rect.height > 0) {
-          const pos = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + window.scrollY,
-          };
-          onDebugLog?.(`BranchButton: ✓ Setting position (${pos.x}, ${pos.y})`);
-          setPosition(pos);
-        } else {
-          onDebugLog?.('BranchButton: ERROR - rect has zero dimensions');
-        }
-      } else {
-        onDebugLog?.('BranchButton: ERROR - selection invalid or empty');
-      }
-    };
-
-    // Update position with a small delay for iOS Safari
-    // iOS Safari needs time to finalize the selection
-    const timer = setTimeout(updatePosition, 50);
-
-    // Also update immediately in case it's ready
-    updatePosition();
-
-    // Update position on scroll/resize
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
-
-    return () => {
-      onDebugLog?.('BranchButton: Component unmounting');
-      clearTimeout(timer);
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [onDebugLog]);
+    onDebugLog?.(`BranchButton: Component mounted with position (${initialPosition.x}, ${initialPosition.y})`);
+  }, [onDebugLog, initialPosition.x, initialPosition.y]);
 
   const handleBranch = () => {
     onBranch();
@@ -118,10 +75,6 @@ export function BranchButton({
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [showDropdown]);
-
-  if (!position) {
-    return null;
-  }
 
   const otherBranches = availableConversations.filter(c => c.id !== currentConversationId);
   const hasOtherBranches = otherBranches.length > 0;
