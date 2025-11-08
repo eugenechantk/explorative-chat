@@ -237,7 +237,7 @@ export default function Home() {
         </div>
 
         {/* Group View */}
-        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+        <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
           {activeGroup && activeConversations.length > 0 ? (
             <GroupView
               group={activeGroup}
