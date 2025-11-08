@@ -42,6 +42,7 @@ export function ConversationPanel({
   } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const prevBranchIdRef = useRef(conversation.id);
+  const selectionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debug state for iOS Safari debugging
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
@@ -100,7 +101,7 @@ export function ConversationPanel({
         const selection = window.getSelection();
         const selectedText = selection?.toString().trim();
 
-        addDebugLog(`selectionchange fired. Text: "${selectedText?.substring(0, 20) || 'none'}"`);
+        addDebugLog(`selectionchange fired. Text: "${selectedText?.substring(0, 20) || 'none'}", rangeCount: ${selection?.rangeCount || 0}`);
         setDebugSelectedText(selectedText || null);
 
         if (selectedText) {
@@ -146,8 +147,18 @@ export function ConversationPanel({
                     x: rect.left + rect.width / 2,
                     y: rect.top + window.scrollY,
                   };
-                  addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
-                  setBranchSelection({ message, text: selectedText, position });
+
+                  // Clear any pending timer
+                  if (selectionTimerRef.current) {
+                    clearTimeout(selectionTimerRef.current);
+                  }
+
+                  // Delay setting branchSelection to allow iOS to show native UI
+                  addDebugLog(`Delaying branch selection update...`);
+                  selectionTimerRef.current = setTimeout(() => {
+                    addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
+                    setBranchSelection({ message, text: selectedText, position });
+                  }, 500); // Wait 500ms for iOS to settle
                 } else {
                   addDebugLog('ERROR: rect has zero dimensions');
                 }
@@ -161,10 +172,15 @@ export function ConversationPanel({
           }
         } else if (!selectedText && branchSelection) {
           // Clear selection when text is deselected
-          addDebugLog('Clearing branch selection');
-          setBranchSelection(null);
-          setDebugMessageId(null);
-          setDebugCssInfo(null);
+          // But only if rangeCount is actually 0 (selection truly gone)
+          if (selection && selection.rangeCount === 0) {
+            addDebugLog('Clearing branch selection (rangeCount = 0)');
+            setBranchSelection(null);
+            setDebugMessageId(null);
+            setDebugCssInfo(null);
+          } else {
+            addDebugLog(`NOT clearing - rangeCount: ${selection?.rangeCount || 0}`);
+          }
         }
       });
     };
@@ -187,6 +203,9 @@ export function ConversationPanel({
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       document.removeEventListener('mousedown', handleMouseDown);
+      if (selectionTimerRef.current) {
+        clearTimeout(selectionTimerRef.current);
+      }
     };
   }, [branchSelection, messages]);
 
