@@ -14,8 +14,9 @@ class ExplorativeChatDB extends Dexie {
   constructor() {
     super('ExplorativeChatDB');
 
-    // Current schema (simplified - removed v1 to avoid table name conflicts)
-    this.version(1).stores({
+    // Version 3: Clean schema without migration conflicts
+    // (Skipping v1 and v2 to avoid table name conflicts from previous versions)
+    this.version(3).stores({
       branches: 'id, conversationId, createdAt, updatedAt, position',
       conversations: 'id, createdAt, updatedAt',
       messages: 'id, branchId, timestamp',
