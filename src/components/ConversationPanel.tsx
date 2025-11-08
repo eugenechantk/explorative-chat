@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Branch, Message, BranchContext } from '@/lib/types';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -49,10 +49,10 @@ export function ConversationPanel({
     touchCallout: string;
   } | null>(null);
 
-  const addDebugLog = (message: string) => {
+  const addDebugLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setDebugLogs((prev) => [...prev.slice(-20), `[${timestamp}] ${message}`]);
-  };
+  }, []);
 
   // Log initial environment info
   useEffect(() => {
