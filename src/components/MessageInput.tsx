@@ -59,7 +59,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
     // Auto-resize textarea
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   };
 
@@ -110,7 +110,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
           placeholder={mentions.length > 0 ? 'ADD YOUR MESSAGE...' : placeholder.toUpperCase()}
           disabled={disabled}
           rows={1}
-          className="flex-1 bg-zinc-950 border-0 px-3 py-3 text-white placeholder:text-zinc-700 text-sm md:text-sm resize-none focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed max-h-[200px] overflow-y-auto"
+          className="flex-1 bg-zinc-950 border-0 px-3 py-3 text-white placeholder:text-zinc-700 text-sm md:text-sm resize-none focus:outline-none font-mono disabled:opacity-50 disabled:cursor-not-allowed max-h-[120px] overflow-y-auto"
           style={{ fontSize: '16px' }}
         />
         <button
