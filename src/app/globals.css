@@ -91,26 +91,27 @@ code, pre {
   color: var(--foreground);
 }
 
+/* Enable text selection on message containers - iOS Safari */
+[data-message-id],
+[data-message-id] *,
+.prose,
+.prose *,
+.select-text {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
+/* Disable selection on interactive elements */
+button, input, select, textarea, a {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
 /* iOS Safari specific improvements */
 @supports (-webkit-touch-callout: none) {
-  /* Enable text selection on message containers and content */
-  [data-message-id],
-  [data-message-id] *,
-  .prose,
-  .prose *,
-  .select-text {
-    -webkit-touch-callout: default !important;
-    -webkit-user-select: text !important;
-    user-select: text !important;
-  }
-
-  /* Disable selection on interactive elements */
-  button, input, select, textarea, a {
-    -webkit-user-select: none !important;
-    user-select: none !important;
-    -webkit-touch-callout: none !important;
-  }
-
   /* Enable smooth scrolling on iOS */
   * {
     -webkit-overflow-scrolling: touch;

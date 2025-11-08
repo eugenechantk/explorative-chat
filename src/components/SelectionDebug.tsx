@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 interface SelectionDebugProps {
   logs: string[];
   selectedText: string | null;
@@ -19,6 +21,15 @@ export function SelectionDebug({
   messageId,
   cssInfo,
 }: SelectionDebugProps) {
+  const [supportsTest, setSupportsTest] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Test if @supports query matches
+    const testEl = document.createElement('div');
+    testEl.style.webkitTouchCallout = 'default';
+    setSupportsTest(CSS.supports('-webkit-touch-callout', 'default'));
+  }, []);
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-zinc-950 border-t border-zinc-700 p-3 max-h-64 overflow-y-auto z-50 text-xs font-mono">
       <div className="flex justify-between items-center mb-2">
@@ -27,6 +38,13 @@ export function SelectionDebug({
       </div>
 
       <div className="space-y-1 mb-3">
+        <div className="flex gap-2">
+          <span className="text-zinc-500">CSS Supports:</span>
+          <span className={supportsTest ? 'text-green-400' : 'text-yellow-400'}>
+            {supportsTest ? 'YES' : 'NO (fallback active)'}
+          </span>
+        </div>
+
         <div className="flex gap-2">
           <span className="text-zinc-500">Has Selection:</span>
           <span className={hasSelection ? 'text-green-400' : 'text-red-400'}>
