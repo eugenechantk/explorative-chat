@@ -27,7 +27,7 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
     setMentions(mentionedTexts);
 
     // Focus on textarea after a delay to ensure rendering and scroll animations complete
-    // Longer delay (500ms) accounts for panel scroll animations when branching
+    // Delay (1000ms) accounts for: panel render (~0ms) + scroll delay (100ms) + smooth scroll animation (~500ms)
     if (mentionedTexts.length > 0) {
       // Clear any existing timeout to avoid multiple focuses
       if (focusTimeoutRef.current) {
@@ -35,12 +35,19 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
       }
 
       focusTimeoutRef.current = setTimeout(() => {
-        // Only focus if the textarea exists and isn't already focused
-        if (textareaRef.current && document.activeElement !== textareaRef.current) {
+        // Focus the textarea if it exists
+        if (textareaRef.current) {
+          console.log('[MessageInput] Auto-focusing textarea, current activeElement:', document.activeElement?.tagName);
           textareaRef.current.focus();
+          // Verify focus was successful
+          setTimeout(() => {
+            console.log('[MessageInput] Focus result - activeElement:', document.activeElement?.tagName, 'is textarea:', document.activeElement === textareaRef.current);
+          }, 100);
+        } else {
+          console.log('[MessageInput] Cannot focus - textarea ref not available');
         }
         focusTimeoutRef.current = null;
-      }, 500);
+      }, 1000);
     }
 
     // Cleanup timeout on unmount
