@@ -90,3 +90,30 @@ code, pre {
   background: hsl(212, 100%, 48%, 0.3);
   color: var(--foreground);
 }
+
+/* Enable text selection on message containers - iOS Safari */
+[data-message-id],
+[data-message-id] *,
+.prose,
+.prose *,
+.select-text {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
+/* Disable selection on interactive elements */
+button, input, select, textarea, a {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* iOS Safari specific improvements */
+@supports (-webkit-touch-callout: none) {
+  /* Enable smooth scrolling on iOS */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -9,14 +9,12 @@ interface MessageListProps {
   messages: Message[];
   isStreaming?: boolean;
   streamingContent?: string;
-  onMessageSelect?: (message: Message, selectedText: string) => void;
 }
 
 export function MessageList({
   messages,
   isStreaming = false,
   streamingContent = '',
-  onMessageSelect,
 }: MessageListProps) {
   const streamingMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(messages.length);
@@ -25,7 +23,6 @@ export function MessageList({
   // Auto-scroll to top of new message when streaming starts
   useEffect(() => {
     const streamingJustStarted = isStreaming && !wasStreamingRef.current;
-    const streamingJustEnded = !isStreaming && wasStreamingRef.current;
 
     // Only scroll when streaming starts, not when it ends
     if (streamingJustStarted && streamingMessageRef.current) {
@@ -41,17 +38,6 @@ export function MessageList({
     wasStreamingRef.current = isStreaming;
   }, [messages.length, isStreaming, streamingContent]);
 
-  const handleTextSelection = (message: Message) => {
-    const selection = window.getSelection();
-    const selectedText = selection?.toString().trim();
-    if (selectedText && onMessageSelect) {
-      onMessageSelect(message, selectedText);
-    } else if (!selectedText && onMessageSelect) {
-      // Clear selection when text is unselected
-      onMessageSelect(message, '');
-    }
-  };
-
   return (
     <div className="flex-1 overflow-y-auto bg-black">
       {messages.length === 0 && !isStreaming && (
@@ -65,8 +51,8 @@ export function MessageList({
       {messages.map((message) => (
         <div
           key={message.id}
+          data-message-id={message.id}
           className="flex gap-3 px-3 py-3"
-          onMouseUp={() => handleTextSelection(message)}
         >
           <div className="w-7 h-7 bg-zinc-900 border border-zinc-800 flex items-center justify-center flex-shrink-0">
             {message.role === 'assistant' ? (

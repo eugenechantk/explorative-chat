@@ -75,7 +75,7 @@ function CodeBlock({ language, children, className }: CodeBlockProps) {
 
 export function MessageContent({ content, className = '' }: MessageContentProps) {
   return (
-    <div className={`prose prose-invert max-w-none ${className}`}>
+    <div className={`prose prose-invert max-w-none select-text ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
