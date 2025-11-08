@@ -213,9 +213,9 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-proximity lg:snap-none"
+      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
     >
-      <div className="h-full flex w-max">
+      <div className="h-full flex snap-x snap-proximity lg:snap-none w-max">
         <PanelGroup direction="horizontal" className="h-full">
           {branches.map((branch, index) => (
             <div key={`wrapper-${branch.id}`} className="contents">
