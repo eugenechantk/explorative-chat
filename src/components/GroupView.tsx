@@ -205,21 +205,22 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth md:snap-none"
+      className="h-full overflow-x-auto overflow-y-hidden scroll-smooth"
     >
-      <PanelGroup direction="horizontal" className="h-full">
-        {conversations.map((conversation, index) => (
-          <div
-            key={conversation.id}
-            ref={(el) => {
-              if (el) {
-                panelRefsMap.current.set(conversation.id, el);
-              } else {
-                panelRefsMap.current.delete(conversation.id);
-              }
-            }}
-            className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
-          >
+      <div className="h-full flex snap-x snap-mandatory md:snap-none w-max">
+        <PanelGroup direction="horizontal" className="h-full">
+          {conversations.map((conversation, index) => (
+            <div
+              key={conversation.id}
+              ref={(el) => {
+                if (el) {
+                  panelRefsMap.current.set(conversation.id, el);
+                } else {
+                  panelRefsMap.current.delete(conversation.id);
+                }
+              }}
+              className="snap-center md:snap-align-none h-full w-screen md:w-[650px] flex-shrink-0"
+            >
             <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
@@ -241,6 +242,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
           </div>
         ))}
       </PanelGroup>
+      </div>
     </div>
   );
 }
