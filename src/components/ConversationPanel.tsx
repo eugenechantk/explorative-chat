@@ -101,13 +101,13 @@ export function ConversationPanel({
         const selection = window.getSelection();
         const selectedText = selection?.toString().trim();
 
-        addDebugLog(`selectionchange fired. Text: "${selectedText?.substring(0, 20) || 'none'}", rangeCount: ${selection?.rangeCount || 0}`);
-        setDebugSelectedText(selectedText || null);
+        // Use console.log to avoid re-renders that disrupt iOS selection
+        console.log(`[Selection] Text: "${selectedText?.substring(0, 20) || 'none'}", rangeCount: ${selection?.rangeCount || 0}`);
 
         if (selectedText) {
           // Find which message contains the selection
           const anchorNode = selection?.anchorNode;
-          addDebugLog(`anchorNode: ${anchorNode?.nodeName || 'null'}`);
+          console.log(`[Selection] anchorNode: ${anchorNode?.nodeName || 'null'}`);
 
           if (anchorNode) {
             let messageElement: HTMLElement | null = anchorNode.parentElement;
@@ -118,23 +118,14 @@ export function ConversationPanel({
               messageElement = messageElement.parentElement;
               depth++;
               if (depth > 20) {
-                addDebugLog('ERROR: Exceeded max depth finding message container');
+                console.log('[Selection] ERROR: Exceeded max depth');
                 break;
               }
             }
 
             if (messageElement) {
               const messageId = messageElement.getAttribute('data-message-id');
-              addDebugLog(`Found message: ${messageId?.substring(0, 8)}`);
-              setDebugMessageId(messageId);
-
-              // Get computed CSS for debugging
-              const computedStyle = window.getComputedStyle(messageElement);
-              setDebugCssInfo({
-                userSelect: computedStyle.userSelect || 'not set',
-                webkitUserSelect: computedStyle.getPropertyValue('-webkit-user-select') || 'not set',
-                touchCallout: computedStyle.getPropertyValue('-webkit-touch-callout') || 'not set',
-              });
+              console.log(`[Selection] Found message: ${messageId?.substring(0, 8)}`);
 
               const message = messages.find(m => m.id === messageId);
               if (message) {
@@ -154,32 +145,45 @@ export function ConversationPanel({
                   }
 
                   // Delay setting branchSelection to allow iOS to show native UI
-                  addDebugLog(`Delaying branch selection update...`);
+                  console.log(`[Selection] Delaying button for 800ms...`);
                   selectionTimerRef.current = setTimeout(() => {
+                    console.log(`[Selection] ✓ Showing button at (${position.x}, ${position.y})`);
                     addDebugLog(`✓ Setting branch selection at (${position.x}, ${position.y})`);
+                    setDebugSelectedText(selectedText);
+                    setDebugMessageId(messageId);
+
+                    // Get computed CSS for debugging
+                    const computedStyle = window.getComputedStyle(messageElement!);
+                    setDebugCssInfo({
+                      userSelect: computedStyle.userSelect || 'not set',
+                      webkitUserSelect: computedStyle.getPropertyValue('-webkit-user-select') || 'not set',
+                      touchCallout: computedStyle.getPropertyValue('-webkit-touch-callout') || 'not set',
+                    });
+
                     setBranchSelection({ message, text: selectedText, position });
-                  }, 500); // Wait 500ms for iOS to settle
+                  }, 800); // Wait 800ms for iOS to settle
                 } else {
-                  addDebugLog('ERROR: rect has zero dimensions');
+                  console.log('[Selection] ERROR: rect has zero dimensions');
                 }
               } else {
-                addDebugLog('ERROR: Message not found in messages array');
+                console.log('[Selection] ERROR: Message not found');
               }
             } else {
-              addDebugLog('ERROR: Could not find message container');
-              setDebugMessageId(null);
+              console.log('[Selection] ERROR: Could not find message container');
             }
           }
         } else if (!selectedText && branchSelection) {
           // Clear selection when text is deselected
           // But only if rangeCount is actually 0 (selection truly gone)
           if (selection && selection.rangeCount === 0) {
-            addDebugLog('Clearing branch selection (rangeCount = 0)');
+            console.log('[Selection] Clearing branch selection (rangeCount = 0)');
+            addDebugLog('Clearing branch selection');
             setBranchSelection(null);
             setDebugMessageId(null);
             setDebugCssInfo(null);
+            setDebugSelectedText(null);
           } else {
-            addDebugLog(`NOT clearing - rangeCount: ${selection?.rangeCount || 0}`);
+            console.log(`[Selection] NOT clearing - rangeCount: ${selection?.rangeCount || 0}`);
           }
         }
       });
