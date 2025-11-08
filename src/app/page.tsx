@@ -70,14 +70,19 @@ export default function Home() {
 
   const handleCreateNewConversation = async () => {
     try {
+      console.log('[CREATE] Starting conversation creation...');
+
       const newConversation: Conversation = {
         id: generateId(),
         branchIds: [],
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
+      console.log('[CREATE] Generated conversation object:', newConversation);
 
+      console.log('[CREATE] Step 1: Creating conversation in DB...');
       await createConversation(newConversation);
+      console.log('[CREATE] Step 1: SUCCESS - Conversation created');
 
       // Create initial branch
       const initialBranch: Branch = {
@@ -89,21 +94,38 @@ export default function Home() {
         updatedAt: Date.now(),
         position: 0,
       };
+      console.log('[CREATE] Generated branch object:', initialBranch);
 
+      console.log('[CREATE] Step 2: Creating initial branch in DB...');
       await createBranch(initialBranch);
+      console.log('[CREATE] Step 2: SUCCESS - Branch created');
 
       // Update conversation with branch ID in database
+      console.log('[CREATE] Step 3: Updating conversation with branchIds...');
       await updateConversation(newConversation.id, { branchIds: [initialBranch.id] });
+      console.log('[CREATE] Step 3: SUCCESS - Conversation updated');
 
       // Update local state
       newConversation.branchIds = [initialBranch.id];
 
+      console.log('[CREATE] Step 4: Setting state...');
       setActiveConversation(newConversation);
       setActiveBranches([initialBranch]);
+      console.log('[CREATE] Step 4: SUCCESS - State set');
+
+      console.log('[CREATE] Step 5: Reloading conversations...');
       await loadConversations();
+      console.log('[CREATE] Step 5: SUCCESS - Conversations reloaded');
+
+      console.log('[CREATE] COMPLETE - All steps succeeded');
     } catch (error) {
-      console.error('Error creating conversation:', error);
-      alert('Error creating conversation. Please try again.');
+      console.error('[CREATE] ERROR occurred:', error);
+      console.error('[CREATE] Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      alert(`Error creating conversation: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
