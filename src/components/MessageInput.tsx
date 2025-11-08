@@ -16,47 +16,14 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
   const [message, setMessage] = useState('');
   const [mentions, setMentions] = useState<string[]>(mentionedTexts);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync mentioned texts from props and auto-focus when they change
+  // Sync mentioned texts from props
   // Note: This pattern syncs props to state, which is intentional for this component
   // The component needs local state because users can remove mentions
   /* eslint-disable react-compiler/react-compiler */
   useEffect(() => {
     // Update local state when prop changes (needed for prop-to-state sync pattern)
     setMentions(mentionedTexts);
-
-    // Focus on textarea after a delay to ensure rendering and scroll animations complete
-    // Delay (1000ms) accounts for: panel render (~0ms) + scroll delay (100ms) + smooth scroll animation (~500ms)
-    if (mentionedTexts.length > 0) {
-      // Clear any existing timeout to avoid multiple focuses
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current);
-      }
-
-      focusTimeoutRef.current = setTimeout(() => {
-        // Focus the textarea if it exists
-        if (textareaRef.current) {
-          console.log('[MessageInput] Auto-focusing textarea, current activeElement:', document.activeElement?.tagName);
-          textareaRef.current.focus();
-          // Verify focus was successful
-          setTimeout(() => {
-            console.log('[MessageInput] Focus result - activeElement:', document.activeElement?.tagName, 'is textarea:', document.activeElement === textareaRef.current);
-          }, 100);
-        } else {
-          console.log('[MessageInput] Cannot focus - textarea ref not available');
-        }
-        focusTimeoutRef.current = null;
-      }, 1000);
-    }
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current);
-        focusTimeoutRef.current = null;
-      }
-    };
   }, [mentionedTexts]);
   /* eslint-enable react-compiler/react-compiler */
 
@@ -82,7 +49,6 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
 
   const handleRemoveMention = (index: number) => {
     setMentions(mentions.filter((_, i) => i !== index));
-    textareaRef.current?.focus();
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
