@@ -37,7 +37,13 @@ export function MessageInput({ onSend, disabled = false, placeholder = 'Type a m
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
+        // Blur to close mobile keyboard
+        textareaRef.current.blur();
       }
+      // Scroll to top after keyboard closes to show header
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   };
 
