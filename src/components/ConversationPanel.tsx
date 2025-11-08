@@ -33,11 +33,21 @@ export function ConversationPanel({
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [branchSelection, setBranchSelection] = useState<{ message: Message; text: string } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prevConversationIdRef = useRef(conversation.id);
 
   // Sync messages from conversation prop changes
   useEffect(() => {
-    setMessages(conversation.messages || []);
-  }, [conversation.id]); // Only update when conversation changes
+    // If conversation ID changed, always sync (switching to different conversation)
+    if (prevConversationIdRef.current !== conversation.id) {
+      setMessages(conversation.messages || []);
+      prevConversationIdRef.current = conversation.id;
+    }
+    // Otherwise, only update if prop has more messages (e.g., loaded from storage)
+    // Never overwrite with fewer messages to prevent data loss
+    else if (conversation.messages && conversation.messages.length > messages.length) {
+      setMessages(conversation.messages);
+    }
+  }, [conversation.id, conversation.messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear branch selection when clicking elsewhere or selection changes
   useEffect(() => {

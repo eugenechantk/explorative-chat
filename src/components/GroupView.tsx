@@ -42,12 +42,15 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     if (scrollContainerRef.current && conversations.length > 1) {
       const container = scrollContainerRef.current;
       // Scroll to the rightmost conversation (newest)
-      setTimeout(() => {
-        container.scrollTo({
-          left: container.scrollWidth,
-          behavior: 'smooth'
-        });
-      }, 100);
+      // Use requestAnimationFrame to ensure DOM has updated, then add a small delay for layout
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          container.scrollTo({
+            left: container.scrollWidth,
+            behavior: 'smooth'
+          });
+        }, 150);
+      });
     }
   }, [conversations.length]);
 
@@ -125,6 +128,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
 
     await createConversation(newConversation);
 
+    // Keep existing conversation objects to preserve their state
     const updatedConversations = [...conversations, newConversation];
     const updatedGroup = {
       ...group,
@@ -190,14 +194,14 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
       className="h-full flex snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth md:snap-none"
       style={{ minWidth: `${conversations.length * 600}px` }}
     >
-      <PanelGroup direction="horizontal">
+      <PanelGroup direction="horizontal" className="h-full">
         {conversations.map((conversation, index) => (
-          <div key={conversation.id} className="snap-center md:snap-align-none">
+          <div key={conversation.id} className="snap-center md:snap-align-none h-full">
             <Panel
               defaultSize={100 / conversations.length}
               minSize={20}
               onClick={() => setActiveConversationId(conversation.id)}
-              className="w-screen md:w-auto"
+              className="w-screen md:w-auto h-full"
               style={{ minWidth: '100vw' }}
             >
               <ConversationPanel
