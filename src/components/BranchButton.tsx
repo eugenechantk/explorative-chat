@@ -76,6 +76,13 @@ export function BranchButton({
     }
   };
 
+  // Prevent Safari from clearing selection when button is pressed
+  const handleButtonMouseDown = (e: React.MouseEvent | React.TouchEvent, handler: () => void) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handler();
+  };
+
   // Close dropdown when clicking/touching outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -115,7 +122,8 @@ export function BranchButton({
       <div className="flex items-center gap-0 shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* Main Branch Button */}
         <button
-          onClick={handleBranch}
+          onMouseDown={(e) => handleButtonMouseDown(e, handleBranch)}
+          onTouchStart={(e) => handleButtonMouseDown(e, handleBranch)}
           className="px-4 py-3 md:py-2 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 text-white flex items-center gap-2 text-sm md:text-sm font-mono transition-colors min-h-[48px] md:min-h-[44px] cursor-pointer touch-manipulation"
           title="Branch to new branch"
         >
@@ -127,7 +135,8 @@ export function BranchButton({
         {hasOtherBranches && (
           <>
             <button
-              onClick={() => setShowDropdown(!showDropdown)}
+              onMouseDown={(e) => handleButtonMouseDown(e, () => setShowDropdown(!showDropdown))}
+              onTouchStart={(e) => handleButtonMouseDown(e, () => setShowDropdown(!showDropdown))}
               className="px-3 py-3 md:py-2 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 border-l-0 transition-colors min-h-[48px] min-w-[48px] md:min-h-[44px] md:min-w-[44px] cursor-pointer touch-manipulation"
               title="Branch to existing branch"
             >
@@ -144,7 +153,8 @@ export function BranchButton({
                   {otherBranches.map((branch) => (
                     <button
                       key={branch.id}
-                      onClick={() => handleBranchToBranch(branch.id)}
+                      onMouseDown={(e) => handleButtonMouseDown(e, () => handleBranchToBranch(branch.id))}
+                      onTouchStart={(e) => handleButtonMouseDown(e, () => handleBranchToBranch(branch.id))}
                       className="w-full text-left px-3 py-3 text-sm text-white hover:bg-zinc-950 active:bg-zinc-900 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono min-h-[48px] md:min-h-[44px] cursor-pointer touch-manipulation"
                     >
                       <GitBranch className="w-3 h-3 text-zinc-500" />
