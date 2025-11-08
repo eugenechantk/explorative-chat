@@ -244,7 +244,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
                 </Panel>
               </div>
               {index < branches.length - 1 && (
-                <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" />
+                <PanelResizeHandle className="bg-zinc-800 hover:bg-zinc-700 transition-colors hidden md:block" style={{ width: '1px' }} />
               )}
             </div>
           ))}
