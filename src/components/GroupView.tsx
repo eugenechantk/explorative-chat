@@ -148,13 +148,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
 
   if (conversations.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full bg-black">
         <button
           onClick={handleAddConversation}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
+          className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
         >
-          <Plus className="w-5 h-5" />
-          Start New Conversation
+          <Plus className="w-4 h-4" />
+          START NEW CONVERSATION
         </button>
       </div>
     );
@@ -164,13 +164,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
     // Single conversation - no need for resizable panels
     return (
       <div className="h-full flex flex-col">
-        <div className="flex justify-end p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end px-3 py-2 border-b border-zinc-800 bg-zinc-950">
           <button
             onClick={handleAddConversation}
-            className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1"
+            className="px-3 py-2 text-sm bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 font-mono transition-colors"
           >
             <Plus className="w-4 h-4" />
-            New Conversation
+            NEW CONVERSATION
           </button>
         </div>
         <div className="flex-1 overflow-hidden">
@@ -189,13 +189,13 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
   // Multiple conversations - use resizable panels
   return (
     <div className="h-full flex flex-col">
-      <div className="flex justify-end p-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex justify-end px-3 py-2 border-b border-zinc-800 bg-zinc-950">
         <button
           onClick={handleAddConversation}
-          className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1"
+          className="px-3 py-2 text-sm bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 font-mono transition-colors"
         >
           <Plus className="w-4 h-4" />
-          New Conversation
+          NEW CONVERSATION
         </button>
       </div>
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
@@ -219,7 +219,7 @@ export function GroupView({ group, conversations: initialConversations, onGroupU
                   />
                 </Panel>
                 {index < conversations.length - 1 && (
-                  <PanelResizeHandle className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 transition-colors" />
+                  <PanelResizeHandle className="w-1 bg-zinc-800 hover:bg-zinc-700 transition-colors" />
                 )}
               </div>
             ))}

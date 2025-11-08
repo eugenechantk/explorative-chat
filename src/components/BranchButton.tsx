@@ -104,15 +104,15 @@ export function BranchButton({
         top: `${position.y}px`,
       }}
     >
-      <div className="flex items-center gap-0 shadow-lg shadow-black/50">
+      <div className="flex items-center gap-0 shadow-2xl">
         {/* Main Branch Button */}
         <button
           onClick={handleBranch}
-          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-l-lg flex items-center gap-2 text-sm transition-colors"
+          className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
           title="Branch to new conversation"
         >
           <GitBranch className="w-4 h-4" />
-          New
+          NEW
         </button>
 
         {/* Dropdown Toggle (only show if there are other conversations) */}
@@ -120,28 +120,28 @@ export function BranchButton({
           <>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="px-2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg border-l border-blue-800 transition-colors"
+              className="px-2 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-l-0 transition-colors"
               title="Branch to existing conversation"
             >
-              <ChevronDown className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-white transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute top-full mt-1 left-0 bg-gray-900 rounded-lg shadow-xl border border-white/10 min-w-[200px] max-h-[300px] overflow-y-auto">
-                <div className="py-1">
-                  <div className="px-3 py-2 text-xs font-semibold text-gray-400 border-b border-white/10">
-                    Branch to conversation
+              <div className="absolute top-full mt-1 left-0 bg-black border border-zinc-800 shadow-2xl min-w-[200px] max-h-[300px] overflow-y-auto">
+                <div>
+                  <div className="px-3 py-2 text-xs font-semibold text-zinc-600 border-b border-zinc-800 font-mono">
+                    BRANCH TO CONVERSATION
                   </div>
                   {otherConversations.map((conv) => (
                     <button
                       key={conv.id}
                       onClick={() => handleBranchToConversation(conv.id)}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-white/5 flex items-center gap-2 transition-colors"
+                      className="w-full text-left px-3 py-2 text-sm text-white hover:bg-zinc-950 border-b border-zinc-800 flex items-center gap-2 transition-colors font-mono"
                     >
-                      <GitBranch className="w-3 h-3 text-gray-500" />
+                      <GitBranch className="w-3 h-3 text-zinc-500" />
                       <span className="truncate">
-                        {conv.title || `Conversation ${conv.position + 1}`}
+                        {conv.title || `CONVERSATION ${conv.position + 1}`}
                       </span>
                     </button>
                   ))}

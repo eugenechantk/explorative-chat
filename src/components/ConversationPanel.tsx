@@ -179,29 +179,29 @@ export function ConversationPanel({
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-black border-r border-white/10 ${isActive ? 'ring-1 ring-blue-500/50' : ''}`}>
+    <div className={`flex flex-col h-full bg-black border-r border-zinc-800`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60 backdrop-blur-sm">
+      <div className="h-11 flex items-center justify-between px-3 border-b border-zinc-800 bg-zinc-950">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h2 className="text-sm font-medium text-gray-300 truncate">
-            {conversation.title || `Conversation ${conversation.position + 1}`}
+          <h2 className="text-sm font-medium text-white truncate font-mono">
+            {conversation.title || `CONVERSATION ${conversation.position + 1}`}
           </h2>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShowModelSelector(!showModelSelector)}
-            className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
+            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
             title="Change model"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4 text-zinc-500" />
           </button>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
+              className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors"
               title="Close conversation"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 text-zinc-500" />
             </button>
           )}
         </div>
@@ -209,15 +209,15 @@ export function ConversationPanel({
 
       {/* Model Selector */}
       {showModelSelector && (
-        <div className="px-4 py-3 bg-white/5 border-b border-white/10">
-          <label className="text-xs font-medium text-gray-400 mb-2 block">Select Model</label>
+        <div className="px-3 py-3 bg-zinc-900 border-b border-zinc-800">
+          <label className="text-xs font-medium text-zinc-600 mb-2 block font-mono">SELECT MODEL</label>
           <select
             value={selectedModel}
             onChange={(e) => handleModelChange(e.target.value)}
-            className="w-full text-sm px-3 py-2 border border-white/10 rounded-lg bg-white/5 text-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full text-sm px-3 py-2 border-0 bg-zinc-950 text-white focus:outline-none font-mono"
           >
             {POPULAR_MODELS.map((model) => (
-              <option key={model.id} value={model.id} className="bg-gray-900">
+              <option key={model.id} value={model.id} className="bg-zinc-950">
                 {model.name}
               </option>
             ))}

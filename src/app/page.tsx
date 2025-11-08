@@ -126,8 +126,8 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center h-screen bg-black">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading...</p>
+          <div className="w-12 h-12 border-4 border-zinc-800 border-t-transparent animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-400 text-sm font-mono">LOADING...</p>
         </div>
       </div>
     );
@@ -138,26 +138,26 @@ export default function Home() {
       {/* Sidebar */}
       <div
         className={`${
-          sidebarOpen ? 'w-80' : 'w-0'
-        } transition-all duration-300 bg-black border-r border-white/10 flex flex-col overflow-hidden`}
+          sidebarOpen ? 'w-72' : 'w-0'
+        } transition-all duration-300 bg-black border-r border-zinc-800 flex flex-col overflow-hidden`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h1 className="text-lg font-bold text-gray-100">Explorative Chat</h1>
+        <div className="flex items-center justify-between px-3 h-12 border-b border-zinc-800">
+          <h1 className="text-sm font-bold text-white font-mono tracking-tight">EXPLORATIVE CHAT</h1>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
+            className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex gap-2 p-4 border-b border-white/10">
+        <div className="border-b border-zinc-800">
           <button
             onClick={handleCreateNewGroup}
-            className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+            className="w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border-b border-zinc-800 flex items-center justify-center gap-2 text-white text-sm font-mono transition-colors"
           >
             <Plus className="w-4 h-4" />
-            New Group
+            NEW GROUP
           </button>
         </div>
 
@@ -172,25 +172,25 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-black">
         {/* Top Bar */}
-        <div className="flex items-center gap-4 px-4 py-3 bg-black/60 backdrop-blur-sm border-b border-white/10">
+        <div className="flex items-center gap-4 px-3 py-3 bg-zinc-950 border-b border-zinc-800">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 hover:bg-white/5 rounded transition-colors text-gray-400 hover:text-gray-200"
+              className="p-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors text-zinc-500"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
           )}
           <div className="flex-1">
             {activeGroup && (
               <div>
-                <h2 className="text-sm font-medium text-gray-200">
-                  {activeGroup.name || 'Untitled Group'}
+                <h2 className="text-sm font-medium text-white font-mono">
+                  {activeGroup.name || 'UNTITLED GROUP'}
                 </h2>
-                <p className="text-xs text-gray-500">
-                  {activeConversations.length} conversation{activeConversations.length !== 1 ? 's' : ''}
+                <p className="text-xs text-zinc-600 font-mono">
+                  {activeConversations.length} CONVERSATION{activeConversations.length !== 1 ? 'S' : ''}
                 </p>
               </div>
             )}
@@ -209,16 +209,16 @@ export default function Home() {
               }}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <Plus className="w-16 h-16 mb-4 opacity-50" />
-              <h3 className="text-xl font-medium mb-2 text-gray-300">No Active Group</h3>
-              <p className="text-sm mb-6">Create a new group to start chatting</p>
+            <div className="flex flex-col items-center justify-center h-full bg-black">
+              <Plus className="w-16 h-16 mb-4 text-zinc-700" />
+              <h3 className="text-base font-bold mb-2 text-white font-mono">NO ACTIVE GROUP</h3>
+              <p className="text-sm mb-6 text-zinc-500 font-mono">CREATE A NEW GROUP TO START CHATTING</p>
               <button
                 onClick={handleCreateNewGroup}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white flex items-center gap-2 text-sm font-mono transition-colors"
               >
-                <Plus className="w-5 h-5" />
-                Create New Group
+                <Plus className="w-4 h-4" />
+                CREATE NEW GROUP
               </button>
             </div>
           )}
