@@ -29,8 +29,14 @@ class ExplorativeChatDB extends Dexie {
       // Remove old tables
       groups: null,
     }).upgrade(async (trans) => {
-      // Migrate data from old schema to new schema
+      // Only migrate if there's data in the old schema
       const oldGroups = await trans.table('groups').toArray();
+
+      // If no old data exists, skip migration (new user)
+      if (oldGroups.length === 0) {
+        return;
+      }
+
       const oldConversations = await trans.table('conversations').toArray();
       const oldMessages = await trans.table('messages').toArray();
 

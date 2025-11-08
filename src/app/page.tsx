@@ -43,21 +43,29 @@ export default function Home() {
   }, []);
 
   const loadConversations = async () => {
-    setIsLoading(true);
-    const allConversations = await getAllConversations();
-    setConversations(allConversations);
+    try {
+      setIsLoading(true);
+      const allConversations = await getAllConversations();
+      setConversations(allConversations);
 
-    if (allConversations.length > 0 && !activeConversation) {
-      await selectConversation(allConversations[0]);
+      if (allConversations.length > 0 && !activeConversation) {
+        await selectConversation(allConversations[0]);
+      }
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const selectConversation = async (conversation: Conversation) => {
-    const branches = await getBranchesByConversation(conversation.id);
-    setActiveConversation(conversation);
-    setActiveBranches(branches);
+    try {
+      const branches = await getBranchesByConversation(conversation.id);
+      setActiveConversation(conversation);
+      setActiveBranches(branches);
+    } catch (error) {
+      console.error('Error selecting conversation:', error);
+    }
   };
 
   const handleCreateNewConversation = async () => {
