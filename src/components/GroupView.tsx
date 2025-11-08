@@ -222,7 +222,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
               defaultSize={100 / branches.length}
               minSize={20}
               onClick={() => setActiveBranchId(branch.id)}
-              className="snap-start lg:snap-align-none flex-shrink-0"
+              className="snap-start lg:snap-align-none flex-shrink-0 min-w-screen md:min-w-[720px]"
             >
                 <div
                   ref={(el) => {
@@ -232,7 +232,7 @@ export function GroupView({ group, conversations: initialBranches, onGroupUpdate
                       panelRefsMap.current.delete(branch.id);
                     }
                   }}
-                  className="h-full w-screen md:w-[720px]"
+                  className="h-full"
                 >
                   <ConversationPanel
                     conversation={branch}
