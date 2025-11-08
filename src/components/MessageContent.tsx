@@ -27,7 +27,7 @@ function CodeBlock({ language, children, className }: CodeBlockProps) {
     if (typeof node === 'number') return String(node);
     if (Array.isArray(node)) return node.map(getTextContent).join('');
     if (node && typeof node === 'object' && 'props' in node) {
-      return getTextContent(node.props.children);
+      return getTextContent((node as { props: { children: React.ReactNode } }).props.children);
     }
     return '';
   };
